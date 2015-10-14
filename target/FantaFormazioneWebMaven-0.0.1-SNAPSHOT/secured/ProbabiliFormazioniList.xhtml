@@ -1,0 +1,185 @@
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:s="http://jboss.com/products/seam/taglib"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:rich="http://richfaces.org/rich"
+	xmlns:a4j="http://richfaces.org/a4j" template="/layout/template.xhtml">
+
+	<ui:define name="body">
+
+		<h:form id="probabiliFormazioniSearch" styleClass="edit">
+
+			<rich:simpleTogglePanel label="ProbabiliFormazioni Search Filter"
+				switchType="ajax">
+
+				<s:decorate template="../layout/display.xhtml">
+					<ui:define name="label">Stagione</ui:define>
+					<h:selectOneMenu
+						value="#{probabiliFormazioniList.probabiliFormazioni.giornate.stagione}">
+						<f:selectItem itemLabel="Seleziona" itemValue=" "></f:selectItem>
+						<f:selectItems value="#{comboBoxUtil.stagioniStatistiche()}"></f:selectItems>
+						<a4j:support event="onchange"
+							reRender="numGionataComboBox,probabiliFormazioniList"
+							status="searchAjax" />
+					</h:selectOneMenu>
+				</s:decorate>
+				<s:decorate id="numGionataComboBox"
+					template="../layout/display.xhtml">
+					<ui:define name="label">Giornata</ui:define>
+					<h:selectOneMenu
+						value="#{probabiliFormazioniList.probabiliFormazioni.giornate.numeroGiornata}">
+						<f:selectItems
+							value="#{comboBoxUtil.giornateStagioneCalcoloFormazioni(probabiliFormazioniList.probabiliFormazioni.giornate.stagione)}"></f:selectItems>
+						<a4j:support event="onchange" reRender="probabiliFormazioniList"
+							status="searchAjax" />
+					</h:selectOneMenu>
+				</s:decorate>
+				<s:decorate template="../layout/display.xhtml">
+					<ui:define name="label">Nome formazione</ui:define>
+					<h:selectOneMenu
+						value="#{probabiliFormazioniList.probabiliFormazioni.id.idUtentiFormazioni}">
+						<f:selectItems
+							value="#{comboBoxUtil.formazioniUtente(sessionInfo.authUser.id)}"></f:selectItems>
+						<a4j:support event="onchange" reRender="probabiliFormazioniList"
+							status="searchAjax" />
+					</h:selectOneMenu>
+				</s:decorate>
+				<a4j:status id="searchAjax">
+					<f:facet name="start">
+						<h:graphicImage value="../img/ajax-loader.gif" />
+					</f:facet>
+				</a4j:status>
+			</rich:simpleTogglePanel>
+
+			<div class="actionButtons">
+				<s:button id="reset" value="Reset" includePageParams="false" />
+			</div>
+
+		</h:form>
+
+		<rich:panel id="probabiliFormazioniList">
+			<f:facet name="header">ProbabiliFormazioni Search Results (#{empty probabiliFormazioniList.resultList ? 0 : (probabiliFormazioniList.paginated ? probabiliFormazioniList.resultCount : probabiliFormazioniList.resultList.size)})</f:facet>
+			<div class="results">
+				<h:outputText style="font-size: 200%"
+					value="#{utentiFormazioniList.getUtentiFormazioniByIdAndIdUtente(probabiliFormazioniList.probabiliFormazioni.id.idUtentiFormazioni, sessionInfo.authUser.id).getNomeFormazione()}" />
+				<h:outputText
+					value="The probabiliFormazioni search returned no results."
+					rendered="#{empty probabiliFormazioniList.resultList}" />
+
+				<rich:dataTable var="_probabiliFormazioni"
+					value="#{probabiliFormazioniList.resultList}"
+					rendered="#{not empty probabiliFormazioniList.resultList}">
+					<h:column>
+						<f:facet name="header">
+							<ui:include src="/layout/sort.xhtml">
+								<ui:param name="entityList" value="#{probabiliFormazioniList}" />
+								<ui:param name="propertyLabel" value="Giocatore" />
+								<ui:param name="propertyPath"
+									value="probabiliFormazioni.giocatori.nome" />
+							</ui:include>
+						</f:facet>
+						<h:outputText
+							value="#{giocatoriList.getGiocatoreById(_probabiliFormazioni.id.idGiocatore).nome}" />
+					</h:column>
+					<h:column>
+						<f:facet name="header">
+							<ui:include src="/layout/sort.xhtml">
+								<ui:param name="entityList" value="#{probabiliFormazioniList}" />
+								<ui:param name="propertyLabel" value="Ruolo" />
+								<ui:param name="propertyPath"
+									value="probabiliFormazioni.giocatori.ruolo" />
+							</ui:include>
+						</f:facet>
+						<h:outputText
+							value="#{giocatoriList.getGiocatoreById(_probabiliFormazioni.id.idGiocatore).ruolo}" />
+					</h:column>
+					<h:column>
+						<f:facet name="header">
+							<h:outputText value="Voto giornata prec" />
+						</f:facet>
+						<h:outputText
+							value="#{(statisticheList.getStatisticheIdGiocatoreIdGiornata(_probabiliFormazioni.id.idGiocatore, probabiliFormazioniList.probabiliFormazioni.id.idGiornate)).id.mediaVoto}" />
+					</h:column>
+					<h:column>
+						<f:facet name="header">
+							<h:outputText value="FantaVoto giornata prec" />
+						</f:facet>
+						<h:outputText
+							value="#{(statisticheList.getStatisticheIdGiocatoreIdGiornata(_probabiliFormazioni.id.idGiocatore, probabiliFormazioniList.probabiliFormazioni.id.idGiornate)).id.mediaVotoFm}" />
+					</h:column>
+					<h:column>
+						<f:facet name="header">
+							<ui:include src="/layout/sort.xhtml">
+								<ui:param name="entityList" value="#{probabiliFormazioniList}" />
+								<ui:param name="propertyLabel" value="Squadra" />
+								<ui:param name="propertyPath"
+									value="probabiliFormazioni.giocatori.squadre.nome" />
+							</ui:include>
+						</f:facet>
+						<h:outputText
+							value="#{giocatoriList.getGiocatoreById(_probabiliFormazioni.id.idGiocatore).squadre.nome}" />
+					</h:column>
+					<h:column>
+						<f:facet name="header">
+							<h:outputText value="Casa / Fuori casa" />
+						</f:facet>
+						<h:graphicImage value="/img/true.png" rendered="#{calendarioList.isSquadraFuoriCasa(_probabiliFormazioni.id.idGiornate, giocatoriList.getGiocatoreById(_probabiliFormazioni.id.idGiocatore).squadre.id)}"/>
+						<h:graphicImage value="/img/false.png" rendered="#{!calendarioList.isSquadraFuoriCasa(_probabiliFormazioni.id.idGiornate, giocatoriList.getGiocatoreById(_probabiliFormazioni.id.idGiocatore).squadre.id)}"/>
+					</h:column>
+					<h:column>
+						<f:facet name="header">
+							<h:outputText
+							value="Squadra avversaria" />
+						</f:facet>
+						<h:outputText
+							value="#{calendarioList.getNomeSquadraAvversaria(_probabiliFormazioni.id.idGiornate, giocatoriList.getGiocatoreById(_probabiliFormazioni.id.idGiocatore).squadre.id)}" />
+					</h:column>
+					<h:column>
+						<f:facet name="header">
+							<ui:include src="/layout/sort.xhtml">
+								<ui:param name="entityList" value="#{probabiliFormazioniList}" />
+								<ui:param name="propertyLabel" value="Prob titolare" />
+								<ui:param name="propertyPath"
+									value="probabiliFormazioni.id.probTitolare" />
+							</ui:include>
+						</f:facet>
+						<h:graphicImage value="/img/FF_favicon.ico.png" rendered="#{probabiliFormazioniList.isFantaGazzettaSource(_probabiliFormazioni.id.probTitolare)}"/>
+						<h:graphicImage value="/img/Gazza_favicon.ico.gif" rendered="#{probabiliFormazioniList.isGazzettaSource(_probabiliFormazioni.id.probTitolare)}"/>
+					</h:column>
+					<h:column>
+						<f:facet name="header">
+							<ui:include src="/layout/sort.xhtml">
+								<ui:param name="entityList" value="#{probabiliFormazioniList}" />
+								<ui:param name="propertyLabel" value="Prob panchina" />
+								<ui:param name="propertyPath"
+									value="probabiliFormazioni.id.probPanchina" />
+							</ui:include>
+						</f:facet>
+						<h:graphicImage value="/img/FF_favicon.ico.png" rendered="#{probabiliFormazioniList.isFantaGazzettaSource(_probabiliFormazioni.id.probPanchina)}"/>
+						<h:graphicImage value="/img/Gazza_favicon.ico.gif" rendered="#{probabiliFormazioniList.isGazzettaSource(_probabiliFormazioni.id.probPanchina)}"/>
+					</h:column>
+					<h:column>
+						<f:facet name="header">
+							<h:outputText value="Quot. iniziale" />
+						</f:facet>
+						<h:outputText
+							value="#{giocatoriList.getGiocatoreById(_probabiliFormazioni.id.idGiocatore).quotazIniziale}" />
+					</h:column>
+					<h:column>
+						<f:facet name="header">
+							<h:outputText value="Quot. attuale" />
+						</f:facet>
+						<h:outputText
+							value="#{giocatoriList.getGiocatoreById(_probabiliFormazioni.id.idGiocatore).quotazAttuale}" />
+					</h:column>
+				</rich:dataTable>
+
+			</div>
+		</rich:panel>
+
+	</ui:define>
+
+</ui:composition>

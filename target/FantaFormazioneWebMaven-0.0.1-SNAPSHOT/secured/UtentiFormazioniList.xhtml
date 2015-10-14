@@ -1,0 +1,104 @@
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:s="http://jboss.com/products/seam/taglib"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:rich="http://richfaces.org/rich"
+	xmlns:a4j="http://richfaces.org/a4j" template="/layout/template.xhtml">
+
+	<ui:define name="body">
+
+		<h:form id="utentiFormazioniSearch" styleClass="edit">
+
+			<rich:simpleTogglePanel label="Ricerca formazioni utente"
+				switchType="ajax">
+
+				<s:decorate template="/layout/display.xhtml">
+					<ui:define name="label">Nome formazione</ui:define>
+					<h:inputText id="nomeFormazione"
+						value="#{utentiFormazioniList.utentiFormazioni.nomeFormazione}" />
+				</s:decorate>
+
+			</rich:simpleTogglePanel>
+
+			<div class="actionButtons">
+				<a4j:commandButton id="search" value="Cerca"
+					action="#{utentiFormazioniList.refresh()}"
+					reRender="utentiFormazioniList" />
+				<s:button id="reset" value="Reset" includePageParams="false" />
+			</div>
+
+			<rich:panel id="utentiFormazioniList">
+				<f:facet name="header">UtentiFormazioni Search Results (#{empty utentiFormazioniList.resultList ? 0 : (utentiFormazioniList.paginated ? utentiFormazioniList.resultCount : utentiFormazioniList.resultList.size)})</f:facet>
+				<div class="results" id="utentiFormazioniList">
+
+					<h:outputText
+						value="The utentiFormazioni search returned no results."
+						rendered="#{empty utentiFormazioniList.resultList}" />
+
+					<rich:dataTable var="_utentiFormazioni"
+						value="#{utentiFormazioniList.resultList}"
+						rendered="#{not empty utentiFormazioniList.resultList}">
+						<h:column>
+							<f:facet name="header">
+								<ui:include src="/layout/sort.xhtml">
+									<ui:param name="entityList" value="#{utentiFormazioniList}" />
+									<ui:param name="propertyLabel" value="Nome formazione" />
+									<ui:param name="propertyPath"
+										value="utentiFormazioni.nomeFormazione" />
+								</ui:include>
+							</f:facet>
+							<h:outputText value="#{_utentiFormazioni.nomeFormazione}" />
+						</h:column>
+						<rich:column styleClass="action">
+							<f:facet name="header">Action</f:facet>
+							<h:selectOneMenu value="#{comboBoxUtil.stagioneDaCalcolare}">
+								<f:selectItems value="#{comboBoxUtil.stagioniStatistiche()}"></f:selectItems>
+								<a4j:support event="onchange" reRender="numeroGiornateComboBox"
+									ajaxSingle="true" />
+							</h:selectOneMenu>
+							<h:selectOneMenu id="numeroGiornateComboBox"
+								value="#{comboBoxUtil.numeroGiornataDaCalcolare}">
+								<f:selectItems
+									value="#{comboBoxUtil.giornateStagioneCalcoloFormazioni(comboBoxUtil.stagioneDaCalcolare)}"></f:selectItems>
+								<a4j:support event="onchange" reRender="buttonCalcola"
+									ajaxSingle="true" />
+							</h:selectOneMenu>
+            #{' '}
+            <a4j:commandLink id="buttonCalcola" value="Calcola"
+								action="#{formazioniList.calcolaFormazione(_utentiFormazioni.id, comboBoxUtil.stagioneDaCalcolare, comboBoxUtil.numeroGiornataDaCalcolare)}"
+								ajaxSingle="true" />
+								#{' '}
+							<s:link view="/secured/FormazioniCreate.xhtml">
+								<h:graphicImage value="/img/edit.png" alt="Modifica" />
+								<f:param name="idUtenteFormazione"
+									value="${_utentiFormazioni.id}"></f:param>
+								<f:param name="nomeFormazione"
+									value="${_utentiFormazioni.nomeFormazione}"></f:param>
+							</s:link>
+							<s:link view="/secured/FormazioniCreateMercato.xhtml">
+								<h:outputText value="Mercato" />
+								<f:param name="idUtenteFormazione"
+									value="${_utentiFormazioni.id}"></f:param>
+								<f:param name="nomeFormazione"
+									value="${_utentiFormazioni.nomeFormazione}"></f:param>
+							</s:link>
+							#{' '}
+							<a4j:commandLink
+								action="${utentiFormazioniList.delete(_utentiFormazioni.id, sessionInfo.authUser.id)}"
+								ajaxSingle="true"
+								reRender="utentiFormazioniList">
+								<h:graphicImage value="/img/remove.png" />
+							</a4j:commandLink>
+						</rich:column>
+					</rich:dataTable>
+
+				</div>
+			</rich:panel>
+		</h:form>
+
+	</ui:define>
+
+</ui:composition>

@@ -1,0 +1,245 @@
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:s="http://jboss.com/products/seam/taglib"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:rich="http://richfaces.org/rich"
+	xmlns:a4j="http://richfaces.org/a4j" template="layout/template.xhtml">
+
+	<ui:define name="body">
+
+		<h:form id="statisticheSearch" styleClass="edit">
+
+			<rich:simpleTogglePanel label="Statistiche Search Filter"
+				switchType="ajax">
+
+				<s:decorate template="layout/display.xhtml">
+					<ui:define name="label">Stagione</ui:define>
+					<h:selectOneMenu value="#{statisticheList.giornate.stagione}">
+						<f:selectItems value="#{comboBoxUtil.stagioniStatistiche()}"></f:selectItems>
+					</h:selectOneMenu>
+				</s:decorate>
+
+				<s:decorate template="layout/display.xhtml">
+					<ui:define name="label">Giornata</ui:define>
+					<h:selectOneMenu value="#{statisticheList.giornate.numeroGiornata}">
+						<f:selectItems value="#{comboBoxUtil.giornateStatistiche()}"></f:selectItems>
+						<a4j:support event="onchange"
+							action="#{statisticheList.initResultList()}"
+							reRender="statisticheList" status="searchAjax" />
+					</h:selectOneMenu>
+				</s:decorate>
+
+				<s:decorate template="layout/display.xhtml">
+					<ui:define name="label">Nome giocatore</ui:define>
+					<h:inputText id="nomeGiocatore"
+						value="#{statisticheList.giocatori.nome}">
+						<a4j:support event="onkeyup"
+							action="#{statisticheList.initResultList()}"
+							reRender="statisticheList" status="searchAjax" />
+					</h:inputText>
+				</s:decorate>
+
+				<s:decorate template="layout/display.xhtml">
+					<ui:define name="label">Squadra</ui:define>
+					<h:selectOneMenu value="#{statisticheList.giocatori.squadre.nome}">
+						<f:selectItem itemValue="" itemLabel="" />
+						<f:selectItems value="#{comboBoxUtil.squadre()}"></f:selectItems>
+						<a4j:support event="onchange"
+							action="#{statisticheList.initResultList()}"
+							reRender="statisticheList" />
+					</h:selectOneMenu>
+				</s:decorate>
+				<s:decorate template="layout/display.xhtml">
+					<ui:define name="label">Ruolo</ui:define>
+					<h:selectOneMenu value="#{statisticheList.giocatori.ruolo}">
+						<f:selectItem itemValue="" itemLabel="" />
+						<f:selectItem itemValue="P" itemLabel="Portiere" />
+						<f:selectItem itemValue="D" itemLabel="Difensore" />
+						<f:selectItem itemValue="C" itemLabel="Centrocampista" />
+						<f:selectItem itemValue="A" itemLabel="Attaccante" />
+						<a4j:support event="onchange"
+							action="#{statisticheList.initResultList()}"
+							reRender="statisticheList" />
+					</h:selectOneMenu>
+				</s:decorate>
+				<a4j:status id="searchAjax">
+					<f:facet name="start">
+						<h:graphicImage value="img/ajax-loader.gif" />
+					</f:facet>
+				</a4j:status>
+			</rich:simpleTogglePanel>
+			<div class="actionButtons">
+				<!-- <a4j:commandButton id="search" value="Cerca"
+					action="#{statisticheList.initResultList()}"
+					reRender="statisticheList" /> -->
+				<h:commandButton value="Cerca"
+					action="#{statisticheList.initResultList()}" />
+				<s:button id="reset" value="Reset" includePageParams="false" />
+			</div>
+
+		</h:form>
+
+		<rich:panel id="statisticheList">
+			<f:facet name="header">Statistiche Search Results (#{empty statisticheList.resultList ? 0 : (statisticheList.paginated ? statisticheList.resultCount : statisticheList.resultList.size)})</f:facet>
+			<div class="results">
+
+				<h:outputText value="The statistiche search returned no results."
+					rendered="#{empty statisticheList.resultList}" />
+
+				<rich:dataTable var="_statistiche"
+					value="#{statisticheList.resultList}"
+					rendered="#{not empty statisticheList.resultList}">
+					<h:column>
+						<f:facet name="header">
+							<ui:include src="layout/sort.xhtml">
+								<ui:param name="entityList" value="#{statisticheList}" />
+								<ui:param name="propertyLabel" value="Giornata" />
+								<ui:param name="propertyPath"
+									value="statistiche.giornate.numeroGiornata" />
+							</ui:include>
+						</f:facet>
+						<h:outputText value="#{_statistiche.giornate.numeroGiornata}" />
+					</h:column>
+					<h:column>
+						<f:facet name="header">
+							<ui:include src="layout/sort.xhtml">
+								<ui:param name="entityList" value="#{statisticheList}" />
+								<ui:param name="propertyLabel" value="Giocatore" />
+								<ui:param name="propertyPath" value="statistiche.giocatori.nome" />
+							</ui:include>
+						</f:facet>
+						<h:outputText value="#{_statistiche.giocatori.nome}" />
+					</h:column>
+					<h:column>
+						<f:facet name="header">
+							<ui:include src="layout/sort.xhtml">
+								<ui:param name="entityList" value="#{statisticheList}" />
+								<ui:param name="propertyLabel" value="Squadra" />
+								<ui:param name="propertyPath"
+									value="statistiche.giocatori.squadre.nome" />
+							</ui:include>
+						</f:facet>
+						<h:outputText value="#{_statistiche.giocatori.squadre.nome}" />
+					</h:column>
+					<h:column>
+						<f:facet name="header">
+							<ui:include src="layout/sort.xhtml">
+								<ui:param name="entityList" value="#{statisticheList}" />
+								<ui:param name="propertyLabel" value="Media voto" />
+								<ui:param name="propertyPath" value="statistiche.id.mediaVoto" />
+							</ui:include>
+						</f:facet>
+						<h:outputText value="#{_statistiche.id.mediaVoto}" />
+					</h:column>
+					<h:column>
+						<f:facet name="header">
+							<ui:include src="layout/sort.xhtml">
+								<ui:param name="entityList" value="#{statisticheList}" />
+								<ui:param name="propertyLabel" value="Fanta media" />
+								<ui:param name="propertyPath" value="statistiche.id.mediaVotoFm" />
+							</ui:include>
+						</f:facet>
+						<h:outputText value="#{_statistiche.id.mediaVotoFm}" />
+					</h:column>
+					<h:column>
+						<f:facet name="header">
+							<ui:include src="layout/sort.xhtml">
+								<ui:param name="entityList" value="#{statisticheList}" />
+								<ui:param name="propertyLabel" value="Goal fatti" />
+								<ui:param name="propertyPath" value="statistiche.id.goalFatti" />
+							</ui:include>
+						</f:facet>
+						<h:outputText value="#{_statistiche.id.goalFatti}" />
+					</h:column>
+					<h:column>
+						<f:facet name="header">
+							<ui:include src="layout/sort.xhtml">
+								<ui:param name="entityList" value="#{statisticheList}" />
+								<ui:param name="propertyLabel" value="Goal rigore" />
+								<ui:param name="propertyPath" value="statistiche.id.goalRigore" />
+							</ui:include>
+						</f:facet>
+						<h:outputText value="#{_statistiche.id.goalRigore}" />
+					</h:column>
+					<h:column>
+						<f:facet name="header">
+							<ui:include src="layout/sort.xhtml">
+								<ui:param name="entityList" value="#{statisticheList}" />
+								<ui:param name="propertyLabel" value="Goal subiti" />
+								<ui:param name="propertyPath" value="statistiche.id.goalSubiti" />
+							</ui:include>
+						</f:facet>
+						<h:outputText value="#{_statistiche.id.goalSubiti}" />
+					</h:column>
+					<h:column>
+						<f:facet name="header">
+							<ui:include src="layout/sort.xhtml">
+								<ui:param name="entityList" value="#{statisticheList}" />
+								<ui:param name="propertyLabel" value="Rigori parati" />
+								<ui:param name="propertyPath"
+									value="statistiche.id.rigoriParati" />
+							</ui:include>
+						</f:facet>
+						<h:outputText value="#{_statistiche.id.rigoriParati}" />
+					</h:column>
+					<h:column>
+						<f:facet name="header">
+							<ui:include src="layout/sort.xhtml">
+								<ui:param name="entityList" value="#{statisticheList}" />
+								<ui:param name="propertyLabel" value="Rigori sbagliati" />
+								<ui:param name="propertyPath"
+									value="statistiche.id.rigoriSbagliati" />
+							</ui:include>
+						</f:facet>
+						<h:outputText value="#{_statistiche.id.rigoriSbagliati}" />
+					</h:column>
+					<h:column>
+						<f:facet name="header">
+							<ui:include src="layout/sort.xhtml">
+								<ui:param name="entityList" value="#{statisticheList}" />
+								<ui:param name="propertyLabel" value="Autoreti" />
+								<ui:param name="propertyPath" value="statistiche.id.autoreti" />
+							</ui:include>
+						</f:facet>
+						<h:outputText value="#{_statistiche.id.autoreti}" />
+					</h:column>
+					<h:column>
+						<f:facet name="header">
+							<ui:include src="layout/sort.xhtml">
+								<ui:param name="entityList" value="#{statisticheList}" />
+								<ui:param name="propertyLabel" value="Assist" />
+								<ui:param name="propertyPath" value="statistiche.id.assist" />
+							</ui:include>
+						</f:facet>
+						<h:outputText value="#{_statistiche.id.assist}" />
+					</h:column>
+					<h:column>
+						<f:facet name="header">
+							<ui:include src="layout/sort.xhtml">
+								<ui:param name="entityList" value="#{statisticheList}" />
+								<ui:param name="propertyLabel" value="Ammonizioni" />
+								<ui:param name="propertyPath" value="statistiche.id.ammonizioni" />
+							</ui:include>
+						</f:facet>
+						<h:outputText value="#{_statistiche.id.ammonizioni}" />
+					</h:column>
+					<h:column>
+						<f:facet name="header">
+							<ui:include src="layout/sort.xhtml">
+								<ui:param name="entityList" value="#{statisticheList}" />
+								<ui:param name="propertyLabel" value="Espulsioni" />
+								<ui:param name="propertyPath" value="statistiche.id.espulsioni" />
+							</ui:include>
+						</f:facet>
+						<h:outputText value="#{_statistiche.id.espulsioni}" />
+					</h:column>
+				</rich:dataTable>
+
+			</div>
+		</rich:panel>
+	</ui:define>
+
+</ui:composition>

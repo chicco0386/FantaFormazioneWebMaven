@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<page xmlns="http://jboss.com/products/seam/pages" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://jboss.com/products/seam/pages http://jboss.com/products/seam/pages-2.2.xsd">
+
+	<param name="sort" value="#{utentiFormazioniList.orderColumn}" />
+	<param name="dir" value="#{utentiFormazioniList.orderDirection}" />
+	
+	<action execute="#{comboBoxUtil.setLastStagione()}"/>
+	<action execute="#{comboBoxUtil.setLastNumeroGiornataProbFormazioni()}"/>
+
+	<param name="nomeFormazione"
+		value="#{utentiFormazioniList.utentiFormazioni.nomeFormazione}" />
+	<param name="stagione" value="#{comboBoxUtil.stagioneDaCalcolare}" />
+	<param name="numeroGiornata" value="#{comboBoxUtil.numeroGiornataDaCalcolare}" />
+
+	<navigation
+		from-action="#{formazioniList.calcolaFormazione(_utentiFormazioni.id, comboBoxUtil.stagioneDaCalcolare, comboBoxUtil.numeroGiornataDaCalcolare)}">
+		<rule if-outcome="true">
+			<redirect view-id="/secured/ProbabiliFormazioniList.xhtml">
+			    <!-- <param name="idGiornata" value="#{giornateList.getIdGiornata(comboBoxUtil.numeroGiornataDaCalcolare, comboBoxUtil.stagioneDaCalcolare)}" /> -->
+				<param name="stagione" value="#{comboBoxUtil.stagioneDaCalcolare}" />
+				<param name="numeroGiornata" value="#{comboBoxUtil.numeroGiornataDaCalcolare}" />
+				<param name="idUtenteFormazione" value="#{_utentiFormazioni.id}" />
+			</redirect>
+		</rule>
+	</navigation>
+
+</page>

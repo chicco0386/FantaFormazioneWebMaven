@@ -1,0 +1,168 @@
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:s="http://jboss.com/products/seam/taglib"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:rich="http://richfaces.org/rich"
+	xmlns:a4j="http://richfaces.org/a4j"
+	template="../layout/template.xhtml">
+
+	<ui:define name="body">
+		<h:form id="giornateSearch" styleClass="edit">
+			<div align="center">
+				<h:outputText style="font-weight: bold;" value="Nome formazione" />
+				<h:inputText
+					value="#{utentiFormazioniList.utentiFormazioni.nomeFormazione}" />
+			</div>
+			<rich:simpleTogglePanel label="Giornate Search Filter"
+				switchType="ajax">
+				<s:decorate template="../layout/display.xhtml">
+					<ui:define name="label">Stagione</ui:define>
+					<h:selectOneMenu value="#{giocatoriList.giocatori.stagione}">
+						<f:selectItems value="#{comboBoxUtil.stagioniStatistiche()}"></f:selectItems>
+						<a4j:support event="onchange" action="#{giocatoriList.refresh()}"
+							reRender="giocatoriList" status="searchAjax"/>
+					</h:selectOneMenu>
+				</s:decorate>
+				<s:decorate template="../layout/display.xhtml">
+					<ui:define name="label">Nome giocatore</ui:define>
+					<h:inputText id="nomeGiocatore"
+						value="#{giocatoriList.giocatori.nome}">
+						<a4j:support event="onkeyup" action="#{giocatoriList.refresh()}"
+							reRender="giocatoriList" status="searchAjax" />
+					</h:inputText>
+				</s:decorate>
+
+				<s:decorate template="../layout/display.xhtml">
+					<ui:define name="label">Squadra</ui:define>
+					<h:selectOneMenu value="#{giocatoriList.giocatori.squadre.nome}">
+						<f:selectItem itemValue="" itemLabel="" />
+						<f:selectItems value="#{comboBoxUtil.squadre()}"></f:selectItems>
+						<a4j:support event="onchange" action="#{giocatoriList.refresh()}"
+							reRender="giocatoriList" />
+					</h:selectOneMenu>
+				</s:decorate>
+				<s:decorate template="../layout/display.xhtml">
+					<ui:define name="label">Ruolo</ui:define>
+					<h:selectOneMenu value="#{giocatoriList.giocatori.ruolo}">
+						<f:selectItem itemValue="" itemLabel="" />
+						<f:selectItem itemValue="P" itemLabel="Portiere" />
+						<f:selectItem itemValue="D" itemLabel="Difensore" />
+						<f:selectItem itemValue="C" itemLabel="Centrocampista" />
+						<f:selectItem itemValue="A" itemLabel="Attaccante" />
+						<a4j:support event="onchange" action="#{giocatoriList.refresh()}"
+							reRender="giocatoriList" />
+					</h:selectOneMenu>
+				</s:decorate>
+				<a4j:status id="searchAjax">
+					<f:facet name="start">
+						<h:graphicImage value="../img/ajax-loader.gif" />
+					</f:facet>
+				</a4j:status>
+			</rich:simpleTogglePanel>
+			<div class="actionButtons">
+				<s:button id="reset" value="Reset" includePageParams="false" />
+			</div>
+			<div style="float: left; width: 49%;">
+				<rich:panel id="giocatoriList">
+					<f:facet name="header">
+						<h:outputText value="Crea la tua formazione" />
+					</f:facet>
+					<rich:dataTable var="_giocatori"
+						value="#{giocatoriList.resultList}"
+						rendered="#{not empty giocatoriList.resultList}">
+						<h:column>
+							<f:facet name="header">
+								<ui:include src="../layout/sort.xhtml">
+									<ui:param name="entityList" value="#{giocatoriList}" />
+									<ui:param name="propertyLabel" value="Nome" />
+									<ui:param name="propertyPath" value="giocatori.nome" />
+								</ui:include>
+							</f:facet>
+							<h:outputText value="#{_giocatori.nome}" />
+						</h:column>
+						<h:column>
+							<f:facet name="header">
+								<ui:include src="../layout/sort.xhtml">
+									<ui:param name="entityList" value="#{giocatoriList}" />
+									<ui:param name="propertyLabel" value="Ruolo" />
+									<ui:param name="propertyPath" value="giocatori.ruolo" />
+								</ui:include>
+							</f:facet>
+							<h:outputText value="#{_giocatori.ruolo}" />
+						</h:column>
+						<h:column>
+							<f:facet name="header">
+								<ui:include src="../layout/sort.xhtml">
+									<ui:param name="entityList" value="#{giocatoriList}" />
+									<ui:param name="propertyLabel" value="Squadra" />
+									<ui:param name="propertyPath" value="giocatori.squadre.nome" />
+								</ui:include>
+							</f:facet>
+							<h:outputText value="#{_giocatori.squadre.nome}" />
+						</h:column>
+						<rich:column styleClass="action">
+							<f:facet name="header">Action</f:facet>
+							<a4j:commandLink action="${formazioneBean.add(_giocatori)}"
+								ajaxSingle="true" reRender="giocatoriListFormazione">
+								<h:graphicImage value="/img/add.png" />
+							</a4j:commandLink>
+						</rich:column>
+					</rich:dataTable>
+				</rich:panel>
+			</div>
+			<!-- <div
+				style="float: left; width: 49%; position: fixed; margin-left: 47%;">-->
+			<div style="float: left; width: 49%;">
+				<rich:panel id="giocatoriListFormazione">
+					<f:facet name="header">
+						<h:outputText value="I tuoi giocatori" />
+					</f:facet>
+					<h:outputText
+						value="Devi selezionare almeno un giocatore per creare la tua formazione"
+						rendered="#{empty formazioneBean.listaGiocatori}" />
+					<rich:dataTable id="giocatoriListFormazioneTable"
+						var="_giocatoriFormazione"
+						value="#{formazioneBean.listaGiocatori}"
+						rendered="#{not empty formazioneBean.listaGiocatori}">
+						<h:column>
+							<f:facet name="header">
+								<h:outputText value="Nome" />
+							</f:facet>
+							<h:outputText value="#{_giocatoriFormazione.nome}" />
+						</h:column>
+						<h:column>
+							<f:facet name="header">
+								<h:outputText value="Ruolo" />
+							</f:facet>
+							<h:outputText value="#{_giocatoriFormazione.ruolo}" />
+						</h:column>
+						<h:column>
+							<f:facet name="header">
+								<h:outputText value="Squadra" />
+							</f:facet>
+							<h:outputText value="#{_giocatoriFormazione.squadre.nome}" />
+						</h:column>
+						<rich:column styleClass="action">
+							<f:facet name="header">Action</f:facet>
+							<a4j:commandLink
+								action="${formazioneBean.remove(_giocatoriFormazione)}"
+								ajaxSingle="true"
+								reRender="giocatoriListFormazione,giocatoriListFormazioneTable">
+								<h:graphicImage value="/img/remove.png" />
+							</a4j:commandLink>
+						</rich:column>
+					</rich:dataTable>
+				</rich:panel>
+				<s:div styleClass="actionButtons">
+					<h:commandButton value="Salva formazione"
+						action="#{formazioniList.insertFormazione(utentiFormazioniList.utentiFormazioni.nomeFormazione, formazioneBean.listaGiocatori, sessionInfo.authUser.id, idUtenteFormazione)}">
+					</h:commandButton>
+				</s:div>
+			</div>
+		</h:form>
+	</ui:define>
+
+</ui:composition>
