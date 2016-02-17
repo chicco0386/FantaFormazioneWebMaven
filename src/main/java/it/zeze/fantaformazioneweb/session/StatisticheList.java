@@ -493,7 +493,7 @@ public class StatisticheList extends EntityQuery<Statistiche> {
 		}
 		fantaVoto = fantaVoto.add(new BigDecimal(assist));
 		if (autoreti > 0) {
-			fantaVoto = fantaVoto.add(new BigDecimal(autoreti * 2));
+			fantaVoto = fantaVoto.subtract(new BigDecimal(autoreti * 2));
 		}
 		if (goalFatti > 0) {
 			fantaVoto = fantaVoto.add(new BigDecimal(goalFatti * 3));
