@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Persistence deployment descriptor for dev profile -->
+<persistence xmlns="http://java.sun.com/xml/ns/persistence"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_1_0.xsd"
+	version="1.0">
+
+	<persistence-unit name="FantaFormazioneWeb"
+		transaction-type="JTA">
+		<provider>org.hibernate.ejb.HibernatePersistence</provider>
+		<jta-data-source>java:jboss/FantaFormazioneWebDatasource</jta-data-source>
+		<class>it.zeze.fantaformazioneweb.entity.Calendario</class>
+		<class>it.zeze.fantaformazioneweb.entity.CalendarioId</class>
+		<class>it.zeze.fantaformazioneweb.entity.Formazioni</class>
+		<class>it.zeze.fantaformazioneweb.entity.FormazioniId</class>
+		<class>it.zeze.fantaformazioneweb.entity.Giocatori</class>
+		<class>it.zeze.fantaformazioneweb.entity.Giornate</class>
+		<class>it.zeze.fantaformazioneweb.entity.ProbabiliFormazioni</class>
+		<class>it.zeze.fantaformazioneweb.entity.ProbabiliFormazioniFg</class>
+		<class>it.zeze.fantaformazioneweb.entity.ProbabiliFormazioniFgId</class>
+		<class>it.zeze.fantaformazioneweb.entity.ProbabiliFormazioniGazzetta</class>
+		<class>it.zeze.fantaformazioneweb.entity.ProbabiliFormazioniGazzettaId</class>
+		<class>it.zeze.fantaformazioneweb.entity.ProbabiliFormazioniId</class>
+		<class>it.zeze.fantaformazioneweb.entity.Squadre</class>
+		<class>it.zeze.fantaformazioneweb.entity.Statistiche</class>
+		<class>it.zeze.fantaformazioneweb.entity.StatisticheId</class>
+		<class>it.zeze.fantaformazioneweb.entity.Utenti</class>
+		<class>it.zeze.fantaformazioneweb.entity.UtentiFormazioni</class>
+		<properties>
+			<property name="hibernate.dialect" value="org.hibernate.dialect.MySQLInnoDBDialect" />
+			<property name="hibernate.hbm2ddl.auto" value="none" />
+			<property name="hibernate.show_sql" value="false" />
+			<property name="hibernate.format_sql" value="true" />
+			<property name="jboss.entity.manager.factory.jndi.name"
+				value="java:/FantaFormazioneWebEntityManagerFactory" />
+		</properties>
+	</persistence-unit>
+</persistence>
