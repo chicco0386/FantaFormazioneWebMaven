@@ -1,13 +1,5 @@
 package it.zeze.fantaformazioneweb.session;
 
-import it.zeze.fantaformazioneweb.entity.Giocatori;
-import it.zeze.fantaformazioneweb.entity.ProbabiliFormazioniFg;
-import it.zeze.fantaformazioneweb.entity.ProbabiliFormazioniFgId;
-import it.zeze.html.cleaner.HtmlCleanerUtil;
-import it.zeze.util.ConfigurationUtil;
-import it.zeze.util.Constants;
-import it.zeze.util.FileFormazioneFGComparator;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -19,6 +11,10 @@ import java.util.List;
 
 import javax.persistence.NoResultException;
 import javax.persistence.Query;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactoryConfigurationError;
+import javax.xml.xpath.XPathExpressionException;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.FileFilterUtils;
@@ -30,6 +26,14 @@ import org.jboss.seam.annotations.Logger;
 import org.jboss.seam.annotations.Name;
 import org.jboss.seam.framework.EntityQuery;
 import org.jboss.seam.log.Log;
+
+import it.zeze.fantaformazioneweb.entity.Giocatori;
+import it.zeze.fantaformazioneweb.entity.ProbabiliFormazioniFg;
+import it.zeze.fantaformazioneweb.entity.ProbabiliFormazioniFgId;
+import it.zeze.html.cleaner.HtmlCleanerUtil;
+import it.zeze.util.ConfigurationUtil;
+import it.zeze.util.Constants;
+import it.zeze.util.FileFormazioneFGComparator;
 
 @Name("probabiliFormazioniFgList")
 public class ProbabiliFormazioniFgList extends EntityQuery<ProbabiliFormazioniFg> {
@@ -47,6 +51,9 @@ public class ProbabiliFormazioniFgList extends EntityQuery<ProbabiliFormazioniFg
 
 	@In(create = true)
 	GiornateList giornateList;
+	
+	@In(create = true)
+	SessionInfo sessionInfo;
 
 	private static final String EJBQL = "select probabiliFormazioniFg from ProbabiliFormazioniFg probabiliFormazioniFg";
 
@@ -94,103 +101,86 @@ public class ProbabiliFormazioniFgList extends EntityQuery<ProbabiliFormazioniFg
 		List<TagNode> listMatchsNode;
 		try {
 			listMatchsNode = HtmlCleanerUtil.getListOfElementsByAttributeFromFile(fileToElaborate.getAbsolutePath(), "class", "score-probabili");
-			List<TagNode> listPlayersNode = HtmlCleanerUtil.getListOfElementsByAttributeFromFile(fileToElaborate.getAbsolutePath(), "class", "player");
-			String currentGiornataFromFile = HtmlCleanerUtil.getListOfElementsByAttributeFromFile(fileToElaborate.getAbsolutePath(), "id", "ContentPlaceHolderElle_Labelgiornata").get(0).getText().toString();
-			String currentGiornata = StringUtils.remove(currentGiornataFromFile.trim().toLowerCase(), " giornata");
-			String currentStagione = HtmlCleanerUtil.getListOfElementsByXPathFromFile(fileToElaborate.getAbsolutePath(), "//div[@id='article']/h2").get(0).getText().toString();
-			currentStagione = StringUtils.substringAfter(currentStagione.trim(), "Probabili Formazioni Serie A - ").trim();
-			currentStagione = StringUtils.substringBefore(currentStagione, currentGiornataFromFile);
-			currentStagione = giornateList.getStagione(currentStagione.trim());
-			log.info("Probabili formazioni FG per la " + "[" + currentGiornata + "]a giornata e stagione [" + currentStagione + "]");
-			TagNode currentMatchNode = null;
-			String squadraIn = "";
-			String squadraOut = "";
-			List<TagNode> listPlayersNameInNode = null;
-			List<TagNode> listPlayersNameOutNode = null;
-			TagNode currentPlayerNode = null;
-			TagNode currentSinglePlayerNode = null;
-			TagNode currentPlayerNomeNode;
-			TagNode currentPlayerRuoloNode;
-			String currentGiocatoreNome;
-			String currentGiocatoreRuolo;
-			// Cancello vecchie formazioni
-			int idGiornata = giornateList.getIdGiornata(Integer.valueOf(currentGiornata), currentStagione);
-			deleteByIdGiornata(idGiornata);
-			for (int i = 0; i < listMatchsNode.size(); i++) {
-				currentMatchNode = listMatchsNode.get(i);
-				squadraIn = currentMatchNode.findElementByAttValue("class", "team-in-p", false, true).getText().toString();
-				squadraOut = currentMatchNode.findElementByAttValue("class", "team-out-p", false, true).getText().toString();
+			if (listMatchsNode != null && !listMatchsNode.isEmpty()) {
+				// Vecchio HTML
+				List<TagNode> listPlayersNode = HtmlCleanerUtil.getListOfElementsByAttributeFromFile(fileToElaborate.getAbsolutePath(), "class", "player");
+				String currentGiornataFromFile = HtmlCleanerUtil.getListOfElementsByAttributeFromFile(fileToElaborate.getAbsolutePath(), "id", "ContentPlaceHolderElle_Labelgiornata").get(0).getText().toString();
+				String currentGiornata = StringUtils.remove(currentGiornataFromFile.trim().toLowerCase(), " giornata");
+				String currentStagione = HtmlCleanerUtil.getListOfElementsByXPathFromFile(fileToElaborate.getAbsolutePath(), "//div[@id='article']/h2").get(0).getText().toString();
+				currentStagione = StringUtils.substringAfter(currentStagione.trim(), "Probabili Formazioni Serie A - ").trim();
+				currentStagione = StringUtils.substringBefore(currentStagione, currentGiornataFromFile);
+				currentStagione = giornateList.getStagione(currentStagione.trim());
+				log.info("Probabili formazioni FG per la " + "[" + currentGiornata + "]a giornata e stagione [" + currentStagione + "]");
+				TagNode currentMatchNode = null;
+				String squadraIn = "";
+				String squadraOut = "";
+				List<TagNode> listPlayersNameInNode = null;
+				List<TagNode> listPlayersNameOutNode = null;
+				TagNode currentPlayerNode = null;
+				TagNode currentSinglePlayerNode = null;
+				TagNode currentPlayerNomeNode;
+				TagNode currentPlayerRuoloNode;
+				String currentGiocatoreNome;
+				String currentGiocatoreRuolo;
+				// Cancello vecchie formazioni
+				int idGiornata = giornateList.getIdGiornata(Integer.valueOf(currentGiornata), currentStagione);
+				deleteByIdGiornata(idGiornata);
+				for (int i = 0; i < listMatchsNode.size(); i++) {
+					currentMatchNode = listMatchsNode.get(i);
+					squadraIn = currentMatchNode.findElementByAttValue("class", "team-in-p", false, true).getText().toString();
+					squadraOut = currentMatchNode.findElementByAttValue("class", "team-out-p", false, true).getText().toString();
 
-				currentPlayerNode = listPlayersNode.get(i);
-				// Prendo i giocatori in casa titolari
-				listPlayersNameInNode = HtmlCleanerUtil.getListOfElementsByXPathFromElement(currentPlayerNode, "//div[@class='in']//div[@class='name']");
-				for (int y = 0; y < listPlayersNameInNode.size(); y++) {
-					currentSinglePlayerNode = listPlayersNameInNode.get(y);
-					currentPlayerNomeNode = currentSinglePlayerNode.findElementByName("a", false);
-					currentGiocatoreNome = currentPlayerNomeNode.getText().toString();
-					log.info("----  giocatore casa tit " + currentGiocatoreNome);
-					currentPlayerRuoloNode = currentSinglePlayerNode.findElementByName("span", false);
-					currentGiocatoreRuolo = currentPlayerRuoloNode.getText().toString();
-					Giocatori giocatoriFormazione = getGiocatoreFormazione(currentGiocatoreNome, squadraIn, currentGiocatoreRuolo, currentStagione);
-					probabiliFormazioniFgHome.clearInstance();
-					ProbabiliFormazioniFgId instanceId = new ProbabiliFormazioniFgId(giocatoriFormazione.getId(), idGiornata, true, false);
-					ProbabiliFormazioniFg instance = new ProbabiliFormazioniFg();
-					instance.setId(instanceId);
-					probabiliFormazioniFgHome.setInstance(instance);
-					probabiliFormazioniFgHome.persist();
-				}
-				// Prendo i giocatori in casa panchina
-				listPlayersNameInNode = HtmlCleanerUtil.getListOfElementsByXPathFromElement(currentPlayerNode, "//div[@class='in']//div[@class='namesub']");
-				for (int y = 0; y < listPlayersNameInNode.size(); y++) {
-					currentSinglePlayerNode = listPlayersNameInNode.get(y);
-					currentPlayerNomeNode = currentSinglePlayerNode.findElementByName("a", false);
-					currentGiocatoreNome = currentPlayerNomeNode.getText().toString();
-					log.info("----  giocatore casa panc " + currentGiocatoreNome);
-					currentPlayerRuoloNode = currentSinglePlayerNode.findElementByName("span", false);
-					currentGiocatoreRuolo = currentPlayerRuoloNode.getText().toString();
-					Giocatori giocatoriFormazione = getGiocatoreFormazione(currentGiocatoreNome, squadraIn, currentGiocatoreRuolo, currentStagione);
-					probabiliFormazioniFgHome.clearInstance();
-					ProbabiliFormazioniFgId instanceId = new ProbabiliFormazioniFgId(giocatoriFormazione.getId(), idGiornata, false, true);
-					ProbabiliFormazioniFg instance = new ProbabiliFormazioniFg();
-					instance.setId(instanceId);
-					probabiliFormazioniFgHome.setInstance(instance);
-					probabiliFormazioniFgHome.persist();
-				}
+					currentPlayerNode = listPlayersNode.get(i);
+					// Prendo i giocatori in casa titolari
+					listPlayersNameInNode = HtmlCleanerUtil.getListOfElementsByXPathFromElement(currentPlayerNode, "//div[@class='in']//div[@class='name']");
+					for (int y = 0; y < listPlayersNameInNode.size(); y++) {
+						currentSinglePlayerNode = listPlayersNameInNode.get(y);
+						currentPlayerNomeNode = currentSinglePlayerNode.findElementByName("a", false);
+						currentGiocatoreNome = currentPlayerNomeNode.getText().toString();
+						log.info("----  giocatore casa tit " + currentGiocatoreNome);
+						currentPlayerRuoloNode = currentSinglePlayerNode.findElementByName("span", false);
+						currentGiocatoreRuolo = currentPlayerRuoloNode.getText().toString();
+						salvaGiocatoreFormazione(idGiornata, currentGiocatoreNome, squadraIn, currentGiocatoreRuolo, currentStagione, true);
+					}
+					// Prendo i giocatori in casa panchina
+					listPlayersNameInNode = HtmlCleanerUtil.getListOfElementsByXPathFromElement(currentPlayerNode, "//div[@class='in']//div[@class='namesub']");
+					for (int y = 0; y < listPlayersNameInNode.size(); y++) {
+						currentSinglePlayerNode = listPlayersNameInNode.get(y);
+						currentPlayerNomeNode = currentSinglePlayerNode.findElementByName("a", false);
+						currentGiocatoreNome = currentPlayerNomeNode.getText().toString();
+						log.info("----  giocatore casa panc " + currentGiocatoreNome);
+						currentPlayerRuoloNode = currentSinglePlayerNode.findElementByName("span", false);
+						currentGiocatoreRuolo = currentPlayerRuoloNode.getText().toString();
+						salvaGiocatoreFormazione(idGiornata, currentGiocatoreNome, squadraIn, currentGiocatoreRuolo, currentStagione, false);
+					}
 
-				// Prendo i giocatori fuori casa
-				listPlayersNameOutNode = HtmlCleanerUtil.getListOfElementsByXPathFromElement(currentPlayerNode, "//div[@class='out']//div[@class='name']");
-				for (int y = 0; y < listPlayersNameOutNode.size(); y++) {
-					currentSinglePlayerNode = listPlayersNameOutNode.get(y);
-					currentPlayerNomeNode = currentSinglePlayerNode.findElementByName("a", false);
-					currentGiocatoreNome = currentPlayerNomeNode.getText().toString();
-					log.info("----  giocatore fuori tit " + currentGiocatoreNome);
-					currentPlayerRuoloNode = currentSinglePlayerNode.findElementByName("span", false);
-					currentGiocatoreRuolo = currentPlayerRuoloNode.getText().toString();
-					Giocatori giocatoriFormazione = getGiocatoreFormazione(currentGiocatoreNome, squadraOut, currentGiocatoreRuolo, currentStagione);
-					probabiliFormazioniFgHome.clearInstance();
-					ProbabiliFormazioniFgId instanceId = new ProbabiliFormazioniFgId(giocatoriFormazione.getId(), idGiornata, true, false);
-					ProbabiliFormazioniFg instance = new ProbabiliFormazioniFg();
-					instance.setId(instanceId);
-					probabiliFormazioniFgHome.setInstance(instance);
-					probabiliFormazioniFgHome.persist();
+					// Prendo i giocatori fuori casa
+					listPlayersNameOutNode = HtmlCleanerUtil.getListOfElementsByXPathFromElement(currentPlayerNode, "//div[@class='out']//div[@class='name']");
+					for (int y = 0; y < listPlayersNameOutNode.size(); y++) {
+						currentSinglePlayerNode = listPlayersNameOutNode.get(y);
+						currentPlayerNomeNode = currentSinglePlayerNode.findElementByName("a", false);
+						currentGiocatoreNome = currentPlayerNomeNode.getText().toString();
+						log.info("----  giocatore fuori tit " + currentGiocatoreNome);
+						currentPlayerRuoloNode = currentSinglePlayerNode.findElementByName("span", false);
+						currentGiocatoreRuolo = currentPlayerRuoloNode.getText().toString();
+						salvaGiocatoreFormazione(idGiornata, currentGiocatoreNome, squadraIn, currentGiocatoreRuolo, currentStagione, true);
+					}
+					// Prendo i giocatori in casa pachina
+					listPlayersNameOutNode = HtmlCleanerUtil.getListOfElementsByXPathFromElement(currentPlayerNode, "//div[@class='out']//div[@class='namesub']");
+					for (int y = 0; y < listPlayersNameOutNode.size(); y++) {
+						currentSinglePlayerNode = listPlayersNameOutNode.get(y);
+						currentPlayerNomeNode = currentSinglePlayerNode.findElementByName("a", false);
+						currentGiocatoreNome = currentPlayerNomeNode.getText().toString();
+						log.info("----  giocatore fuori panc " + currentGiocatoreNome);
+						currentPlayerRuoloNode = currentSinglePlayerNode.findElementByName("span", false);
+						currentGiocatoreRuolo = currentPlayerRuoloNode.getText().toString();
+						salvaGiocatoreFormazione(idGiornata, currentGiocatoreNome, squadraIn, currentGiocatoreRuolo, currentStagione, false);
+					}
 				}
-				// Prendo i giocatori in casa pachina
-				listPlayersNameOutNode = HtmlCleanerUtil.getListOfElementsByXPathFromElement(currentPlayerNode, "//div[@class='out']//div[@class='namesub']");
-				for (int y = 0; y < listPlayersNameOutNode.size(); y++) {
-					currentSinglePlayerNode = listPlayersNameOutNode.get(y);
-					currentPlayerNomeNode = currentSinglePlayerNode.findElementByName("a", false);
-					currentGiocatoreNome = currentPlayerNomeNode.getText().toString();
-					log.info("----  giocatore fuori panc " + currentGiocatoreNome);
-					currentPlayerRuoloNode = currentSinglePlayerNode.findElementByName("span", false);
-					currentGiocatoreRuolo = currentPlayerRuoloNode.getText().toString();
-					Giocatori giocatoriFormazione = getGiocatoreFormazione(currentGiocatoreNome, squadraOut, currentGiocatoreRuolo, currentStagione);
-					probabiliFormazioniFgHome.clearInstance();
-					ProbabiliFormazioniFgId instanceId = new ProbabiliFormazioniFgId(giocatoriFormazione.getId(), idGiornata, false, true);
-					ProbabiliFormazioniFg instance = new ProbabiliFormazioniFg();
-					instance.setId(instanceId);
-					probabiliFormazioniFgHome.setInstance(instance);
-					probabiliFormazioniFgHome.persist();
-				}
+			} else {
+				// Nuovo HTML
+				String currentStagione = sessionInfo.getStagione();
+				unmarshallAndSaveSingleHtmlFileNEW(fileToElaborate, currentStagione);
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -200,6 +190,140 @@ public class ProbabiliFormazioniFgList extends EntityQuery<ProbabiliFormazioniFg
 			e.printStackTrace();
 		}
 		log.info("unmarshallAndSaveSingleHtmlFile, uscito");
+	}
+
+	private void unmarshallAndSaveSingleHtmlFileNEW(File fileToElaborate, String stagione) {
+		System.out.println("unmarshallAndSaveSingleHtmlFileNEW, entrato per elaborare il file [" + fileToElaborate.getAbsolutePath() + "]");
+		try {
+			String currentGiornata = HtmlCleanerUtil.getAttributeValueFromFile(fileToElaborate.getAbsolutePath(), "id", "id_giornata", "value");
+			int idGiornata = giornateList.getIdGiornata(Integer.valueOf(currentGiornata), stagione);
+			List<TagNode> listRootTagSquadre = HtmlCleanerUtil.getListOfElementsByAttributeFromFile(fileToElaborate.getAbsolutePath(), "id", "sqtab");
+			if (listRootTagSquadre != null && !listRootTagSquadre.isEmpty()) {
+				TagNode rootTag = listRootTagSquadre.get(0);
+				List<TagNode> listPartite = HtmlCleanerUtil.getListOfElementsByXPathSpecialFromElement(rootTag, "//div[contains(@class,'tab-pane')]");
+				// TagNode currentPartita = null;
+				for (int i = 0; i < listPartite.size(); i++) {
+					TagNode currentPartita = null;
+					currentPartita = listPartite.get(i);
+					unmarshallAndSaveSingleHtmlFileNEWPartita(currentPartita, stagione, idGiornata);
+				}
+			} else {
+				System.out.println("Nessun rootTag contenente le partite!");
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (XPatherException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		System.out.println("unmarshallAndSaveSingleHtmlFileNEW, uscito");
+	}
+
+	private void unmarshallAndSaveSingleHtmlFileNEWPartita(TagNode nodePartita, String stagione, int idGiornata) throws TransformerFactoryConfigurationError, Exception {
+		try {
+			if (nodePartita != null) {
+				List<TagNode> listSquadreHome = HtmlCleanerUtil.getListOfElementsByAttributeFromElement(nodePartita, "itemprop", "homeTeam");
+				String nomeSquadra = listSquadreHome.get(0).getElementsByName("h3", true)[0].getText().toString();
+				System.out.println("Squadra CASA [" + nomeSquadra + "]");
+				// Recupero lista giocatori
+				List<TagNode> listaGiocatori = HtmlCleanerUtil.getListOfElementsByXPathSpecialFromElement(nodePartita, "//div[contains(@class,'probbar')]");
+				TagNode titolariCasa = listaGiocatori.get(0);
+				List<TagNode> listTitolariCasa = unmarshallAndSaveGiocatoriCasaNEW(titolariCasa);
+				System.out.println("Giocatori TITOLARI CASA [" + listTitolariCasa.size() + "]");
+				String giocatoreNome = null;
+				String giocatoreRuolo = null;
+				for (TagNode current : listTitolariCasa) {
+					giocatoreNome = getNomeGiocatore(current);
+					giocatoreRuolo = getRuoloGiocatore(current);
+					salvaGiocatoreFormazione(idGiornata, giocatoreNome, nomeSquadra, giocatoreRuolo, stagione, true);
+					System.out.println(giocatoreNome + " - " + giocatoreRuolo);
+				}
+				TagNode panchinaCasa = listaGiocatori.get(2);
+				List<TagNode> listPanchinaCasa = unmarshallAndSaveGiocatoriCasaNEW(panchinaCasa);
+				System.out.println("Giocatori PANCHINA CASA [" + listPanchinaCasa.size() + "]");
+				for (TagNode current : listPanchinaCasa) {
+					giocatoreNome = getNomeGiocatore(current);
+					giocatoreRuolo = getRuoloGiocatore(current);
+					salvaGiocatoreFormazione(idGiornata, giocatoreNome, nomeSquadra, giocatoreRuolo, stagione, false);
+					System.out.println(getNomeGiocatore(current) + " - " + getRuoloGiocatore(current));
+				}
+
+				List<TagNode> listSquadreFuori = HtmlCleanerUtil.getListOfElementsByAttributeFromElement(nodePartita, "itemprop", "awayTeam");
+				nomeSquadra = listSquadreFuori.get(0).getElementsByName("h3", true)[0].getText().toString();
+				System.out.println("Squadra FUORI [" + nomeSquadra + "]");
+				TagNode titolariFuori = listaGiocatori.get(1);
+				List<TagNode> listTitolariFuori = unmarshallAndSaveGiocatoriFuoriNEW(titolariFuori);
+				System.out.println("Giocatori TITOLARI FUORI [" + listTitolariFuori.size() + "]");
+				for (TagNode current : listTitolariFuori) {
+					giocatoreNome = getNomeGiocatore(current);
+					giocatoreRuolo = getRuoloGiocatore(current);
+					salvaGiocatoreFormazione(idGiornata, giocatoreNome, nomeSquadra, giocatoreRuolo, stagione, true);
+					System.out.println(getNomeGiocatore(current) + " - " + getRuoloGiocatore(current));
+				}
+				TagNode panchinaFuori = listaGiocatori.get(3);
+				List<TagNode> listPanchinaFuori = unmarshallAndSaveGiocatoriFuoriNEW(panchinaFuori);
+				System.out.println("Giocatori PANCHINA FUORI [" + listPanchinaFuori.size() + "]");
+				for (TagNode current : listPanchinaFuori) {
+					giocatoreNome = getNomeGiocatore(current);
+					giocatoreRuolo = getRuoloGiocatore(current);
+					salvaGiocatoreFormazione(idGiornata, giocatoreNome, nomeSquadra, giocatoreRuolo, stagione, false);
+					System.out.println(getNomeGiocatore(current) + " - " + getRuoloGiocatore(current));
+				}
+
+			} else {
+				System.out.println("Nessun nodePartita!");
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (XPatherException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	private List<TagNode> unmarshallAndSaveGiocatoriCasaNEW(TagNode nodeGiocatoriCasa) throws IOException, XPatherException {
+		List<TagNode> listGiocatoriCasa = HtmlCleanerUtil.getListOfElementsByAttributeFromElement(nodeGiocatoriCasa, "class", "pgroup lf");
+		return listGiocatoriCasa;
+	}
+
+	private List<TagNode> unmarshallAndSaveGiocatoriFuoriNEW(TagNode nodeGiocatoriCasa) throws IOException, XPatherException {
+		List<TagNode> listGiocatoriFuori = HtmlCleanerUtil.getListOfElementsByAttributeFromElement(nodeGiocatoriCasa, "class", "pgroup rt");
+		return listGiocatoriFuori;
+	}
+
+	private String getRuoloGiocatore(TagNode nodeGiocatore) throws XPathExpressionException, IOException, XPatherException, ParserConfigurationException, TransformerFactoryConfigurationError, TransformerException {
+		String toReturn = null;
+		List<TagNode> list = HtmlCleanerUtil.getListOfElementsByXPathSpecialFromElement(nodeGiocatore, "//span[contains(@class,'role')]");
+		if (list != null && !list.isEmpty()) {
+			TagNode node = list.get(0);
+			toReturn = node.getText().toString().trim();
+		}
+		return toReturn;
+	}
+
+	private String getNomeGiocatore(TagNode nodeGiocatore) throws XPathExpressionException, IOException, XPatherException, ParserConfigurationException, TransformerFactoryConfigurationError, TransformerException {
+		String toReturn = null;
+		List<TagNode> list = HtmlCleanerUtil.getListOfElementsByXPathSpecialFromElement(nodeGiocatore, "//div[contains(@class,'pname2')]/a");
+		if (list != null && !list.isEmpty()) {
+			TagNode node = list.get(0);
+			toReturn = node.getText().toString().trim();
+		}
+		return toReturn;
+	}
+
+	private void salvaGiocatoreFormazione(int idGiornata, String giocatoreNome, String squadra, String giocatoreRuolo, String stagione, boolean titolare) {
+		Giocatori giocatoriFormazione = getGiocatoreFormazione(giocatoreNome, squadra, giocatoreRuolo, stagione);
+		probabiliFormazioniFgHome.clearInstance();
+		ProbabiliFormazioniFgId instanceId = new ProbabiliFormazioniFgId(giocatoriFormazione.getId(), idGiornata, titolare, !titolare);
+		ProbabiliFormazioniFg instance = new ProbabiliFormazioniFg();
+		instance.setId(instanceId);
+		probabiliFormazioniFgHome.setInstance(instance);
+		probabiliFormazioniFgHome.persist();
 	}
 
 	private Giocatori getGiocatoreFormazione(String giocatoreNome, String squadra, String ruolo, String stagione) {
