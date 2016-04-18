@@ -16,6 +16,7 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactoryConfigurationError;
 import javax.xml.xpath.XPathExpressionException;
 
+import org.apache.commons.collections.ListUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.lang.StringUtils;
@@ -34,6 +35,7 @@ import it.zeze.html.cleaner.HtmlCleanerUtil;
 import it.zeze.util.ConfigurationUtil;
 import it.zeze.util.Constants;
 import it.zeze.util.FileFormazioneFGComparator;
+import it.zeze.util.ListUtil;
 
 @Name("probabiliFormazioniFgList")
 public class ProbabiliFormazioniFgList extends EntityQuery<ProbabiliFormazioniFg> {
@@ -288,11 +290,17 @@ public class ProbabiliFormazioniFgList extends EntityQuery<ProbabiliFormazioniFg
 
 	private List<TagNode> unmarshallAndSaveGiocatoriCasaNEW(TagNode nodeGiocatoriCasa) throws IOException, XPatherException {
 		List<TagNode> listGiocatoriCasa = HtmlCleanerUtil.getListOfElementsByAttributeFromElement(nodeGiocatoriCasa, "class", "pgroup lf");
+		if (listGiocatoriCasa.size() > 11){
+			listGiocatoriCasa = listGiocatoriCasa.subList(0, 11);
+		}
 		return listGiocatoriCasa;
 	}
 
 	private List<TagNode> unmarshallAndSaveGiocatoriFuoriNEW(TagNode nodeGiocatoriCasa) throws IOException, XPatherException {
 		List<TagNode> listGiocatoriFuori = HtmlCleanerUtil.getListOfElementsByAttributeFromElement(nodeGiocatoriCasa, "class", "pgroup rt");
+		if (listGiocatoriFuori.size() > 11){
+			listGiocatoriFuori = listGiocatoriFuori.subList(0, 11);
+		}
 		return listGiocatoriFuori;
 	}
 
