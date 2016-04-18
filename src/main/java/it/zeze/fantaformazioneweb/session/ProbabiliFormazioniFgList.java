@@ -16,7 +16,6 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactoryConfigurationError;
 import javax.xml.xpath.XPathExpressionException;
 
-import org.apache.commons.collections.ListUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.lang.StringUtils;
@@ -35,7 +34,6 @@ import it.zeze.html.cleaner.HtmlCleanerUtil;
 import it.zeze.util.ConfigurationUtil;
 import it.zeze.util.Constants;
 import it.zeze.util.FileFormazioneFGComparator;
-import it.zeze.util.ListUtil;
 
 @Name("probabiliFormazioniFgList")
 public class ProbabiliFormazioniFgList extends EntityQuery<ProbabiliFormazioniFg> {
@@ -195,7 +193,7 @@ public class ProbabiliFormazioniFgList extends EntityQuery<ProbabiliFormazioniFg
 	}
 
 	private void unmarshallAndSaveSingleHtmlFileNEW(File fileToElaborate, String stagione) {
-		System.out.println("unmarshallAndSaveSingleHtmlFileNEW, entrato per elaborare il file [" + fileToElaborate.getAbsolutePath() + "]");
+		log.info("unmarshallAndSaveSingleHtmlFileNEW, entrato per elaborare il file [" + fileToElaborate.getAbsolutePath() + "]");
 		try {
 			String currentGiornata = HtmlCleanerUtil.getAttributeValueFromFile(fileToElaborate.getAbsolutePath(), "id", "id_giornata", "value");
 			int idGiornata = giornateList.getIdGiornata(Integer.valueOf(currentGiornata), stagione);
@@ -210,7 +208,7 @@ public class ProbabiliFormazioniFgList extends EntityQuery<ProbabiliFormazioniFg
 					unmarshallAndSaveSingleHtmlFileNEWPartita(currentPartita, stagione, idGiornata);
 				}
 			} else {
-				System.out.println("Nessun rootTag contenente le partite!");
+				log.info("Nessun rootTag contenente le partite!");
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -222,7 +220,7 @@ public class ProbabiliFormazioniFgList extends EntityQuery<ProbabiliFormazioniFg
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		System.out.println("unmarshallAndSaveSingleHtmlFileNEW, uscito");
+		log.info("unmarshallAndSaveSingleHtmlFileNEW, uscito");
 	}
 
 	private void unmarshallAndSaveSingleHtmlFileNEWPartita(TagNode nodePartita, String stagione, int idGiornata) throws TransformerFactoryConfigurationError, Exception {
@@ -230,54 +228,54 @@ public class ProbabiliFormazioniFgList extends EntityQuery<ProbabiliFormazioniFg
 			if (nodePartita != null) {
 				List<TagNode> listSquadreHome = HtmlCleanerUtil.getListOfElementsByAttributeFromElement(nodePartita, "itemprop", "homeTeam");
 				String nomeSquadra = listSquadreHome.get(0).getElementsByName("h3", true)[0].getText().toString();
-				System.out.println("Squadra CASA [" + nomeSquadra + "]");
+				log.info("Squadra CASA [" + nomeSquadra + "]");
 				// Recupero lista giocatori
 				List<TagNode> listaGiocatori = HtmlCleanerUtil.getListOfElementsByXPathSpecialFromElement(nodePartita, "//div[contains(@class,'probbar')]");
 				TagNode titolariCasa = listaGiocatori.get(0);
 				List<TagNode> listTitolariCasa = unmarshallAndSaveGiocatoriCasaNEW(titolariCasa);
-				System.out.println("Giocatori TITOLARI CASA [" + listTitolariCasa.size() + "]");
+				log.info("Giocatori TITOLARI CASA [" + listTitolariCasa.size() + "]");
 				String giocatoreNome = null;
 				String giocatoreRuolo = null;
 				for (TagNode current : listTitolariCasa) {
 					giocatoreNome = getNomeGiocatore(current);
 					giocatoreRuolo = getRuoloGiocatore(current);
 					salvaGiocatoreFormazione(idGiornata, giocatoreNome, nomeSquadra, giocatoreRuolo, stagione, true);
-					System.out.println(giocatoreNome + " - " + giocatoreRuolo);
+					log.info(giocatoreNome + " - " + giocatoreRuolo);
 				}
 				TagNode panchinaCasa = listaGiocatori.get(2);
 				List<TagNode> listPanchinaCasa = unmarshallAndSaveGiocatoriCasaNEW(panchinaCasa);
-				System.out.println("Giocatori PANCHINA CASA [" + listPanchinaCasa.size() + "]");
+				log.info("Giocatori PANCHINA CASA [" + listPanchinaCasa.size() + "]");
 				for (TagNode current : listPanchinaCasa) {
 					giocatoreNome = getNomeGiocatore(current);
 					giocatoreRuolo = getRuoloGiocatore(current);
 					salvaGiocatoreFormazione(idGiornata, giocatoreNome, nomeSquadra, giocatoreRuolo, stagione, false);
-					System.out.println(getNomeGiocatore(current) + " - " + getRuoloGiocatore(current));
+					log.info(getNomeGiocatore(current) + " - " + getRuoloGiocatore(current));
 				}
 
 				List<TagNode> listSquadreFuori = HtmlCleanerUtil.getListOfElementsByAttributeFromElement(nodePartita, "itemprop", "awayTeam");
 				nomeSquadra = listSquadreFuori.get(0).getElementsByName("h3", true)[0].getText().toString();
-				System.out.println("Squadra FUORI [" + nomeSquadra + "]");
+				log.info("Squadra FUORI [" + nomeSquadra + "]");
 				TagNode titolariFuori = listaGiocatori.get(1);
 				List<TagNode> listTitolariFuori = unmarshallAndSaveGiocatoriFuoriNEW(titolariFuori);
-				System.out.println("Giocatori TITOLARI FUORI [" + listTitolariFuori.size() + "]");
+				log.info("Giocatori TITOLARI FUORI [" + listTitolariFuori.size() + "]");
 				for (TagNode current : listTitolariFuori) {
 					giocatoreNome = getNomeGiocatore(current);
 					giocatoreRuolo = getRuoloGiocatore(current);
 					salvaGiocatoreFormazione(idGiornata, giocatoreNome, nomeSquadra, giocatoreRuolo, stagione, true);
-					System.out.println(getNomeGiocatore(current) + " - " + getRuoloGiocatore(current));
+					log.info(getNomeGiocatore(current) + " - " + getRuoloGiocatore(current));
 				}
 				TagNode panchinaFuori = listaGiocatori.get(3);
 				List<TagNode> listPanchinaFuori = unmarshallAndSaveGiocatoriFuoriNEW(panchinaFuori);
-				System.out.println("Giocatori PANCHINA FUORI [" + listPanchinaFuori.size() + "]");
+				log.info("Giocatori PANCHINA FUORI [" + listPanchinaFuori.size() + "]");
 				for (TagNode current : listPanchinaFuori) {
 					giocatoreNome = getNomeGiocatore(current);
 					giocatoreRuolo = getRuoloGiocatore(current);
 					salvaGiocatoreFormazione(idGiornata, giocatoreNome, nomeSquadra, giocatoreRuolo, stagione, false);
-					System.out.println(getNomeGiocatore(current) + " - " + getRuoloGiocatore(current));
+					log.info(getNomeGiocatore(current) + " - " + getRuoloGiocatore(current));
 				}
 
 			} else {
-				System.out.println("Nessun nodePartita!");
+				log.info("Nessun nodePartita!");
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
