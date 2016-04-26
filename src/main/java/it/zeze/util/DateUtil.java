@@ -7,6 +7,7 @@ import java.util.Date;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jboss.seam.core.Locale;
 
 public class DateUtil {
 
@@ -44,6 +45,13 @@ public class DateUtil {
 
     public static Date getDateWithPatternFromString(String dateString, String pattern) throws ParseException {
 
+        return DateUtil.getDateWithPatternFromString(dateString, pattern, false);
+
+    }
+    
+    public static Date getDateWithPatternFromString(String dateString, String pattern, java.util.Locale lang) throws ParseException {
+
+    	Locale.instance().setDefault(lang);
         return DateUtil.getDateWithPatternFromString(dateString, pattern, false);
 
     }

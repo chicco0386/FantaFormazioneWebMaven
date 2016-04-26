@@ -6,16 +6,25 @@ import it.zeze.util.ConfigurationUtil;
 import it.zeze.util.Constants;
 import it.zeze.util.DateUtil;
 
+import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 
 import javax.persistence.NoResultException;
 import javax.persistence.Query;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactoryConfigurationError;
+import javax.xml.xpath.XPathExpressionException;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.apache.commons.lang.StringUtils;
 import org.htmlcleaner.TagNode;
 import org.htmlcleaner.XPatherException;
@@ -38,6 +47,9 @@ public class GiornateList extends EntityQuery<Giornate> {
 
 	@In(create = true)
 	CalendarioList calendarioList;
+
+	@In(create = true)
+	SessionInfo sessionInfo;
 
 	private static final String EJBQL = "select giornate from Giornate giornate";
 
@@ -67,31 +79,52 @@ public class GiornateList extends EntityQuery<Giornate> {
 		String fileNameCalendario = ConfigurationUtil.getValue(Constants.CONF_KEY_HTML_FILE_CALENDARIO);
 		String fileHTMLPath = rootHTMLFiles + fileNameCalendario;
 		try {
-			String nomeStagione = null;
-			List<TagNode> listNomeStagione = HtmlCleanerUtil.getListOfElementsByXPathFromFile(fileHTMLPath, "//div[@id='stats']/h1");
-			if (listNomeStagione == null || listNomeStagione.isEmpty()) {
-				throw new ParseException("Nome stagione NON trovato", 0);
-			} else {
-				nomeStagione = listNomeStagione.get(0).getText().toString();
-				nomeStagione = StringUtils.substringAfter(nomeStagione.toLowerCase(), "Calendario Serie A ".toLowerCase());
-			}
-
-			List<TagNode> listNodeGiornate = HtmlCleanerUtil.getListOfElementsByXPathFromFile(fileHTMLPath, "//div[@id='stats']/div[@class='calendar']/table");
-			TagNode currentNodeGiornata;
-			int currentIdGiornata;
-			int currentNumeroGiornata;
-			log.info("Salvo giornate per la stagione [" + nomeStagione + "]");
-			for (int i = 0; i < listNodeGiornate.size(); i++) {
-				currentNodeGiornata = listNodeGiornate.get(i);
-				currentNumeroGiornata = i + 1;
-				currentIdGiornata = getIdGiornata(currentNumeroGiornata, nomeStagione);
-				if (currentIdGiornata != -1) {
-					log.info("Stagione [" + currentNumeroGiornata + "] stagione [" + nomeStagione + "] gia' inserita");
+			File fileCalendario = new File(fileHTMLPath);
+			if (fileCalendario.exists()) {
+				String nomeStagione = null;
+				List<TagNode> listNomeStagione = HtmlCleanerUtil.getListOfElementsByXPathFromFile(fileHTMLPath, "//div[@id='stats']/h1");
+				if (listNomeStagione == null || listNomeStagione.isEmpty()) {
+					throw new ParseException("Nome stagione NON trovato", 0);
 				} else {
-					currentIdGiornata = salvaGiornate(currentNodeGiornata, i + 1, nomeStagione);
+					nomeStagione = listNomeStagione.get(0).getText().toString();
+					nomeStagione = StringUtils.substringAfter(nomeStagione.toLowerCase(), "Calendario Serie A ".toLowerCase());
 				}
-				log.info("currentIdGiornata " + currentIdGiornata);
-				calendarioList.unmarshallAndSaveFromNodeCalendario(currentIdGiornata, currentNodeGiornata);
+
+				List<TagNode> listNodeGiornate = HtmlCleanerUtil.getListOfElementsByXPathFromFile(fileHTMLPath, "//div[@id='stats']/div[@class='calendar']/table");
+				TagNode currentNodeGiornata;
+				int currentIdGiornata;
+				int currentNumeroGiornata;
+				log.info("Salvo giornate per la stagione [" + nomeStagione + "]");
+				for (int i = 0; i < listNodeGiornate.size(); i++) {
+					currentNodeGiornata = listNodeGiornate.get(i);
+					currentNumeroGiornata = i + 1;
+					currentIdGiornata = getIdGiornata(currentNumeroGiornata, nomeStagione);
+					if (currentIdGiornata != -1) {
+						log.info("Stagione [" + currentNumeroGiornata + "] stagione [" + nomeStagione + "] gia' inserita");
+					} else {
+						currentIdGiornata = salvaGiornate(currentNodeGiornata, i + 1, nomeStagione);
+					}
+					log.info("currentIdGiornata " + currentIdGiornata);
+					calendarioList.unmarshallAndSaveFromNodeCalendario(currentIdGiornata, currentNodeGiornata);
+				}
+			} else {
+				// Nuovo HTML
+				String currentStagione = sessionInfo.getStagione();
+				fileNameCalendario = ConfigurationUtil.getValue(Constants.CONF_KEY_HTML_FILE_CALENDARIO_NEW);
+				String wildCard = StringUtils.replace(fileNameCalendario, Constants.STRING_TO_REPLACE_NOME_FILE_CALENDARIO_NEW, "*");
+				Iterator<File> itFile = FileUtils.iterateFiles(new File(rootHTMLFiles), new WildcardFileFilter(wildCard), null);
+				File currentGiornataFile;
+				String currentNumeroGiornata;
+				TagNode currentGiornataTag;
+				while (itFile.hasNext()) {
+					currentGiornataFile = itFile.next();
+					log.info("File [" + currentGiornataFile.getName() + "]");
+					currentNumeroGiornata = StringUtils.substringBetween(currentGiornataFile.getName(), "_", "_");
+					log.info("Giornata [" + currentNumeroGiornata + "]");
+					currentGiornataTag = HtmlCleanerUtil.getListOfElementsByXPathSpecialFromFile(currentGiornataFile.getAbsolutePath(), "//div[@id='artContainer']").get(0);
+
+					salvaGiornataNew(currentGiornataTag, Integer.valueOf(currentNumeroGiornata), currentStagione);
+				}
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -100,6 +133,18 @@ public class GiornateList extends EntityQuery<Giornate> {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (XPathExpressionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ParserConfigurationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (TransformerFactoryConfigurationError e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (TransformerException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -126,6 +171,42 @@ public class GiornateList extends EntityQuery<Giornate> {
 			giornateHome.getInstance().setData(currentDateParsed);
 			giornateHome.persist();
 			idGiornataInseritoToReturn = giornateHome.getInstance().getId();
+		}
+		return idGiornataInseritoToReturn;
+	}
+
+	private int salvaGiornataNew(TagNode calendarNode, int numeroGiornata, String nomeStagione) throws IOException, XPatherException, ParseException, XPathExpressionException, ParserConfigurationException, TransformerFactoryConfigurationError, TransformerException {
+		int idGiornataInseritoToReturn = -1;
+		List<TagNode> listDivGiornateNode = HtmlCleanerUtil.getListOfElementsByXPathSpecialFromElement(calendarNode, "//div[contains(@class,'row')][2]/div");
+		List<TagNode> currentListDate;
+		List<TagNode> currentListSquadre;
+		List<TagNode> currentListsquadraCasa;
+		List<TagNode> currentListsquadraFuori;
+		String dataPartita;
+		String patternData="dd MMM";
+		Date dataParsed;
+		for (TagNode currentDiv : listDivGiornateNode) {
+			currentListDate = null;
+			currentListSquadre = null;
+
+			currentListDate = HtmlCleanerUtil.getListOfElementsByXPathFromElement(currentDiv, "//div/span");
+			currentListSquadre = HtmlCleanerUtil.getListOfElementsByXPathSpecialFromElement(currentDiv, "//div[contains(@class,'tablefk')]");
+			if (currentListDate != null && !currentListDate.isEmpty()) {
+				// Data giornata
+				dataPartita = currentListDate.get(0).getText().toString();
+				
+				dataParsed = DateUtil.getDateWithPatternFromString(dataPartita, patternData, Locale.ITALIAN);
+				log.info("Data [" + dataPartita + "] = "+ DateUtil.getDateAsString(dataParsed, "dd/MM/YYYY"));
+			} 
+			if (currentListSquadre != null && !currentListSquadre.isEmpty()) {
+				// Partita con squadre
+				// Squadra casa
+				currentListsquadraCasa = HtmlCleanerUtil.getListOfElementsByXPathSpecialFromElement(currentListSquadre.get(0), "//div[contains(@class,'ui-match-up')]//div[contains(@class,'left')]//h3[contains(@class,'team-name')]");
+				currentListsquadraFuori = HtmlCleanerUtil.getListOfElementsByXPathSpecialFromElement(currentListSquadre.get(0), "//div[contains(@class,'ui-match-up')]//div[contains(@class,'right')]//h3[contains(@class,'team-name')]");
+				for (int i = 0; i < currentListsquadraCasa.size(); i++) {
+					log.info(currentListsquadraCasa.get(i).getText() + " - " + currentListsquadraFuori.get(i).getText());
+				}
+			}
 		}
 		return idGiornataInseritoToReturn;
 	}

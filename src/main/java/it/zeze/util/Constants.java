@@ -14,6 +14,8 @@ public class Constants {
 	public static final String CONF_KEY_HTML_FILE_GIOCATORI_ATTACCANTI = "nomeFileHTMLGiocatoriA";
 
 	public static final String CONF_KEY_HTML_FILE_CALENDARIO = "nomeFileHTMLCalendario";
+	public static final String CONF_KEY_HTML_FILE_CALENDARIO_NEW = "nomeFileHTMLCalendarioNew";
+	public static final String STRING_TO_REPLACE_NOME_FILE_CALENDARIO_NEW = "{giornata}";
 
 	public static final String CONF_KEY_HTML_FILE_STATISTICHE_G = "nomeFileHTMLStatisticheG";
 	public static final String STRING_TO_REPLACE_NOME_FILE_GIORNATE = "{giornata}";
