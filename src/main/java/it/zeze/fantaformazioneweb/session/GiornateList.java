@@ -1,5 +1,7 @@
 package it.zeze.fantaformazioneweb.session;
 
+import it.zeze.fantaformazioneweb.entity.Calendario;
+import it.zeze.fantaformazioneweb.entity.CalendarioId;
 import it.zeze.fantaformazioneweb.entity.Giornate;
 import it.zeze.html.cleaner.HtmlCleanerUtil;
 import it.zeze.util.ConfigurationUtil;
@@ -50,6 +52,12 @@ public class GiornateList extends EntityQuery<Giornate> {
 
 	@In(create = true)
 	SessionInfo sessionInfo;
+	
+	@In(create = true)
+	SquadreList squadreList;
+
+	@In(create = true)
+	CalendarioHome calendarioHome;
 
 	private static final String EJBQL = "select giornate from Giornate giornate";
 
@@ -118,9 +126,7 @@ public class GiornateList extends EntityQuery<Giornate> {
 				TagNode currentGiornataTag;
 				while (itFile.hasNext()) {
 					currentGiornataFile = itFile.next();
-					log.info("File [" + currentGiornataFile.getName() + "]");
 					currentNumeroGiornata = StringUtils.substringBetween(currentGiornataFile.getName(), "_", "_");
-					log.info("Giornata [" + currentNumeroGiornata + "]");
 					currentGiornataTag = HtmlCleanerUtil.getListOfElementsByXPathSpecialFromFile(currentGiornataFile.getAbsolutePath(), "//div[@id='artContainer']").get(0);
 
 					salvaGiornataNew(currentGiornataTag, Integer.valueOf(currentNumeroGiornata), currentStagione);
@@ -180,11 +186,15 @@ public class GiornateList extends EntityQuery<Giornate> {
 		List<TagNode> listDivGiornateNode = HtmlCleanerUtil.getListOfElementsByXPathSpecialFromElement(calendarNode, "//div[contains(@class,'row')][2]/div");
 		List<TagNode> currentListDate;
 		List<TagNode> currentListSquadre;
-		List<TagNode> currentListsquadraCasa;
-		List<TagNode> currentListsquadraFuori;
+		List<TagNode> currentListsquadraCasa = null;
+		List<TagNode> currentListsquadraFuori = null;
 		String dataPartita;
-		String patternData="dd MMM";
-		Date dataParsed;
+		String patternData = "dd MMM";
+		Date dataParsed = null;
+		String squadraCasa;
+		int idSquadraCasa;
+		String squadraFuori;
+		int idSquadraFuori;
 		for (TagNode currentDiv : listDivGiornateNode) {
 			currentListDate = null;
 			currentListSquadre = null;
@@ -194,18 +204,43 @@ public class GiornateList extends EntityQuery<Giornate> {
 			if (currentListDate != null && !currentListDate.isEmpty()) {
 				// Data giornata
 				dataPartita = currentListDate.get(0).getText().toString();
-				
+
 				dataParsed = DateUtil.getDateWithPatternFromString(dataPartita, patternData, Locale.ITALIAN);
-				log.info("Data [" + dataPartita + "] = "+ DateUtil.getDateAsString(dataParsed, "dd/MM/YYYY"));
-			} 
+				dataParsed = DateUtil.getDateAnnoStagione(dataParsed, nomeStagione);
+				log.info("Data [" + dataPartita + "] = " + DateUtil.getDateAsString(dataParsed, "dd/MM/YYYY"));
+			}
 			if (currentListSquadre != null && !currentListSquadre.isEmpty()) {
 				// Partita con squadre
-				// Squadra casa
 				currentListsquadraCasa = HtmlCleanerUtil.getListOfElementsByXPathSpecialFromElement(currentListSquadre.get(0), "//div[contains(@class,'ui-match-up')]//div[contains(@class,'left')]//h3[contains(@class,'team-name')]");
 				currentListsquadraFuori = HtmlCleanerUtil.getListOfElementsByXPathSpecialFromElement(currentListSquadre.get(0), "//div[contains(@class,'ui-match-up')]//div[contains(@class,'right')]//h3[contains(@class,'team-name')]");
 				for (int i = 0; i < currentListsquadraCasa.size(); i++) {
 					log.info(currentListsquadraCasa.get(i).getText() + " - " + currentListsquadraFuori.get(i).getText());
 				}
+			}
+
+			log.info("Salvo giornate per la stagione [" + nomeStagione + "]");
+			idGiornataInseritoToReturn = getIdGiornata(numeroGiornata, nomeStagione);
+			if (idGiornataInseritoToReturn != -1) {
+				log.info("Stagione [" + numeroGiornata + "] stagione [" + nomeStagione + "] gia' inserita");
+			} else {
+				giornateHome.clearInstance();
+				giornateHome.getInstance().setNumeroGiornata(numeroGiornata);
+				giornateHome.getInstance().setStagione(nomeStagione);
+				giornateHome.getInstance().setData(dataParsed);
+				giornateHome.persist();
+				idGiornataInseritoToReturn = giornateHome.getInstance().getId();
+			}
+			log.info("currentIdGiornata " + idGiornataInseritoToReturn);
+			for (int i = 0; i < currentListsquadraCasa.size(); i++) {
+				squadraCasa = currentListsquadraCasa.get(i).getText().toString();
+				squadraFuori = currentListsquadraFuori.get(i).getText().toString();
+				idSquadraCasa = squadreList.getSquadraFromMapByNome(squadraCasa).getId();
+				idSquadraFuori = squadreList.getSquadraFromMapByNome(squadraFuori).getId();
+				calendarioHome.clearInstance();
+				Calendario calendarioToInsert = new Calendario();
+				calendarioToInsert.setId(new CalendarioId(idGiornataInseritoToReturn, idSquadraCasa, idSquadraFuori));
+				calendarioHome.setInstance(calendarioToInsert);
+				calendarioHome.persist();
 			}
 		}
 		return idGiornataInseritoToReturn;
