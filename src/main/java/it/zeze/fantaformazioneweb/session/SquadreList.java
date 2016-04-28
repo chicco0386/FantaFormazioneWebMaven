@@ -139,6 +139,18 @@ public class SquadreList extends EntityQuery<Squadre> {
 				squadraToReturn.setNome(currentEntity.getValue());
 			}
 		}
+		// Ricerco per LIKE per nuovo HTML
+		if (!trovato){
+			it = mapSquadre.entrySet().iterator();
+			while (it.hasNext() && !trovato) {
+				currentEntity = it.next();
+				if (currentEntity.getValue().toLowerCase().startsWith(nomeSquadraToSearch.trim().toLowerCase())) {
+					trovato = true;
+					squadraToReturn.setId(currentEntity.getKey());
+					squadraToReturn.setNome(currentEntity.getValue());
+				}
+			}
+		}
 		return squadraToReturn;
 	}
 
