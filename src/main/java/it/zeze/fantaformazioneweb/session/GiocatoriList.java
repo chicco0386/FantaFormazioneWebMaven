@@ -25,6 +25,7 @@ import it.zeze.html.cleaner.HtmlCleanerUtil;
 import it.zeze.util.ConfigurationUtil;
 import it.zeze.util.Constants;
 import it.zeze.util.JSONUtil;
+import it.zeze.util.NomiUtils;
 
 @Name("giocatoriList")
 public class GiocatoriList extends EntityQuery<Giocatori> {
@@ -49,17 +50,17 @@ public class GiocatoriList extends EntityQuery<Giocatori> {
 
 	private static final String SELECT_BY_ID = "select giocatori from Giocatori giocatori where giocatori.id=:idGiocatore";
 	private static final String SELECT_ID_BY_STAGIONE = "select giocatori.id from Giocatori giocatori where giocatori.stagione=:stagione";
-	private static final String SELECT_BY_NOME_AND_SQUADRA_AND_RUOLO = "select giocatori from Giocatori giocatori where giocatori.squadre.nome=:squadra and giocatori.ruolo=:ruolo and giocatori.nome=:nomeGiocatore";
-	private static final String SELECT_BY_NOME_AND_SQUADRA_AND_RUOLO_AND_STAGIONE = "select giocatori from Giocatori giocatori where giocatori.squadre.nome=:squadra and giocatori.ruolo=:ruolo and giocatori.nome=:nomeGiocatore and giocatori.stagione=:stagione";
-	private static final String SELECT_BY_NOME_AND_SQUADRA_AND_RUOLO_LIKE = "select giocatori from Giocatori giocatori where giocatori.squadre.nome=:squadra and giocatori.ruolo=:ruolo and giocatori.nome like ':nomeGiocatore'";
-	private static final String SELECT_BY_NOME_AND_SQUADRA_AND_RUOLO_LIKE_AND_STAGIONE = "select giocatori from Giocatori giocatori where giocatori.squadre.nome=:squadra and giocatori.ruolo=:ruolo and giocatori.nome like ':nomeGiocatore' and giocatori.stagione=:stagione";
-	private static final String SELECT_BY_NOME_AND_SQUADRA = "select giocatori from Giocatori giocatori where giocatori.squadre.nome=:squadra and giocatori.nome=:nomeGiocatore";
-	private static final String SELECT_BY_NOME_AND_SQUADRA_AND_STAGIONE = "select giocatori from Giocatori giocatori where giocatori.squadre.nome=:squadra and giocatori.nome=:nomeGiocatore and giocatori.stagione=:stagione";
-	private static final String SELECT_BY_NOME_AND_SQUADRA_LIKE = "select giocatori from Giocatori giocatori where giocatori.squadre.nome=:squadra and giocatori.nome like ':nomeGiocatore'";
-	private static final String SELECT_BY_NOME_AND_SQUADRA_LIKE_AND_STAGIONE = "select giocatori from Giocatori giocatori where giocatori.squadre.nome=:squadra and giocatori.nome like ':nomeGiocatore' and giocatori.stagione=:stagione";
+	private static final String SELECT_BY_NOME_AND_SQUADRA_AND_RUOLO = "select giocatori from Giocatori giocatori where lower(giocatori.squadre.nome)=lower(:squadra) and giocatori.ruolo=:ruolo and lower(giocatori.nome)=lower(:nomeGiocatore)";
+	private static final String SELECT_BY_NOME_AND_SQUADRA_AND_RUOLO_AND_STAGIONE = "select giocatori from Giocatori giocatori where lower(giocatori.squadre.nome)=lower(:squadra) and giocatori.ruolo=:ruolo and lower(giocatori.nome)=lower(:nomeGiocatore) and giocatori.stagione=:stagione";
+	private static final String SELECT_BY_NOME_AND_SQUADRA_AND_RUOLO_LIKE = "select giocatori from Giocatori giocatori where lower(giocatori.squadre.nome)=lower(:squadra) and giocatori.ruolo=:ruolo and lower(giocatori.nome) like lower(':nomeGiocatore')";
+	private static final String SELECT_BY_NOME_AND_SQUADRA_AND_RUOLO_LIKE_AND_STAGIONE = "select giocatori from Giocatori giocatori where lower(giocatori.squadre.nome)=lower(:squadra) and giocatori.ruolo=:ruolo and lower(giocatori.nome) like lower(':nomeGiocatore') and giocatori.stagione=:stagione";
+	private static final String SELECT_BY_NOME_AND_SQUADRA = "select giocatori from Giocatori giocatori where lower(giocatori.squadre.nome)=lower(:squadra) and lower(giocatori.nome)=lower(:nomeGiocatore)";
+	private static final String SELECT_BY_NOME_AND_SQUADRA_AND_STAGIONE = "select giocatori from Giocatori giocatori where lower(giocatori.squadre.nome)=lower(:squadra) and lower(giocatori.nome)=lower(:nomeGiocatore) and giocatori.stagione=:stagione";
+	private static final String SELECT_BY_NOME_AND_SQUADRA_LIKE = "select giocatori from Giocatori giocatori where lower(giocatori.squadre.nome)=lower(:squadra) and lower(giocatori.nome) like lower(':nomeGiocatore')";
+	private static final String SELECT_BY_NOME_AND_SQUADRA_LIKE_AND_STAGIONE = "select giocatori from Giocatori giocatori where lower(giocatori.squadre.nome)=lower(:squadra) and lower(giocatori.nome) like lower(':nomeGiocatore') and giocatori.stagione=:stagione";
 
-	private static final String SELECT_BY_NOME_AND_RUOLO = "select giocatori from Giocatori giocatori where giocatori.ruolo=:ruolo and giocatori.nome=:nomeGiocatore";
-	private static final String SELECT_BY_NOME_AND_RUOLO_AND_STAGIONE = "select giocatori from Giocatori giocatori where giocatori.ruolo=:ruolo and giocatori.nome=:nomeGiocatore and giocatori.stagione=:stagione";
+	private static final String SELECT_BY_NOME_AND_RUOLO = "select giocatori from Giocatori giocatori where giocatori.ruolo=:ruolo and lower(giocatori.nome)=lower(:nomeGiocatore)";
+	private static final String SELECT_BY_NOME_AND_RUOLO_AND_STAGIONE = "select giocatori from Giocatori giocatori where giocatori.ruolo=:ruolo and lower(giocatori.nome)=lower(:nomeGiocatore) and giocatori.stagione=:stagione";
 
 	private static final String UPDATE_STAGIONE_GIOCATORE = "update Giocatori giocatori set giocatori.stagione=:stagione where giocatori.id=:idGiocatore";
 	private static final String UPDATE_SQUADRA_GIOCATORE = "update Giocatori giocatori set giocatori.squadre.id=:idSquadra where giocatori.id=:idGiocatore";
@@ -120,7 +121,7 @@ public class GiocatoriList extends EntityQuery<Giocatori> {
 		Giocatori giocatoreToReturn = null;
 		Query query = getEntityManager().createQuery(SELECT_BY_NOME_AND_RUOLO);
 		query.setParameter("ruolo", ruolo.trim());
-		query.setParameter("nomeGiocatore", nomeGiocatore.trim());
+		query.setParameter("nomeGiocatore", NomiUtils.pulisciNome(nomeGiocatore));
 		List<Giocatori> resultSet = query.getResultList();
 		if (resultSet.size() == 1) {
 			giocatoreToReturn = resultSet.get(0);
@@ -137,7 +138,7 @@ public class GiocatoriList extends EntityQuery<Giocatori> {
 		Giocatori giocatoreToReturn = null;
 		Query query = getEntityManager().createQuery(SELECT_BY_NOME_AND_RUOLO_AND_STAGIONE);
 		query.setParameter("ruolo", ruolo.trim());
-		query.setParameter("nomeGiocatore", nomeGiocatore.trim());
+		query.setParameter("nomeGiocatore", NomiUtils.pulisciNome(nomeGiocatore));
 		query.setParameter("stagione", Constants.getStagione(stagione));
 		List<Giocatori> resultSet = query.getResultList();
 		if (resultSet.size() == 1) {
@@ -154,7 +155,7 @@ public class GiocatoriList extends EntityQuery<Giocatori> {
 			Query query = getEntityManager().createQuery(SELECT_BY_NOME_AND_SQUADRA_AND_RUOLO);
 			query.setParameter("squadra", squadra.trim());
 			query.setParameter("ruolo", ruolo.trim());
-			query.setParameter("nomeGiocatore", nomeGiocatore.trim());
+			query.setParameter("nomeGiocatore", NomiUtils.pulisciNome(nomeGiocatore));
 			List<Giocatori> resultSet = query.getResultList();
 			if (resultSet.size() == 1) {
 				giocatoreToReturn = resultSet.get(0);
@@ -179,7 +180,7 @@ public class GiocatoriList extends EntityQuery<Giocatori> {
 			Query query = getEntityManager().createQuery(SELECT_BY_NOME_AND_SQUADRA_AND_RUOLO_AND_STAGIONE);
 			query.setParameter("squadra", squadra.trim());
 			query.setParameter("ruolo", ruolo.trim());
-			query.setParameter("nomeGiocatore", nomeGiocatore.trim());
+			query.setParameter("nomeGiocatore", NomiUtils.pulisciNome(nomeGiocatore));
 			query.setParameter("stagione", Constants.getStagione(stagione));
 			resultSet = query.getResultList();
 			if (resultSet.size() == 1) {
@@ -271,7 +272,7 @@ public class GiocatoriList extends EntityQuery<Giocatori> {
 		Giocatori giocatoreToReturn = null;
 		Query query = getEntityManager().createQuery(SELECT_BY_NOME_AND_SQUADRA);
 		query.setParameter("squadra", squadra.trim());
-		query.setParameter("nomeGiocatore", nomeGiocatore.trim());
+		query.setParameter("nomeGiocatore", NomiUtils.pulisciNome(nomeGiocatore));
 		List<Giocatori> resultSet = query.getResultList();
 		if (resultSet.size() == 1) {
 			giocatoreToReturn = resultSet.get(0);
@@ -289,7 +290,7 @@ public class GiocatoriList extends EntityQuery<Giocatori> {
 		Giocatori giocatoreToReturn = null;
 		Query query = getEntityManager().createQuery(SELECT_BY_NOME_AND_SQUADRA_AND_STAGIONE);
 		query.setParameter("squadra", squadra.trim());
-		query.setParameter("nomeGiocatore", nomeGiocatore.trim());
+		query.setParameter("nomeGiocatore", NomiUtils.pulisciNome(nomeGiocatore));
 		query.setParameter("stagione", Constants.getStagione(stagione));
 		List<Giocatori> resultSet = query.getResultList();
 		if (resultSet.size() == 1) {
@@ -376,7 +377,7 @@ public class GiocatoriList extends EntityQuery<Giocatori> {
 		Squadre squadra = new Squadre();
 		squadra.setId(squadraGiocatore.getId());
 		giocatoriHome.getInstance().setSquadre(squadra);
-		giocatoriHome.getInstance().setNome(nomeGiocatore);
+		giocatoriHome.getInstance().setNome(NomiUtils.pulisciNome(nomeGiocatore));
 		giocatoriHome.getInstance().setRuolo(ruolo);
 		giocatoriHome.persist();
 	}
@@ -387,7 +388,7 @@ public class GiocatoriList extends EntityQuery<Giocatori> {
 		Squadre squadra = new Squadre();
 		squadra.setId(squadraGiocatore.getId());
 		giocatoriHome.getInstance().setSquadre(squadra);
-		giocatoriHome.getInstance().setNome(nomeGiocatore);
+		giocatoriHome.getInstance().setNome(NomiUtils.pulisciNome(nomeGiocatore));
 		giocatoriHome.getInstance().setRuolo(ruolo);
 		giocatoriHome.getInstance().setStagione(Constants.getStagione(stagione));
 		giocatoriHome.persist();
@@ -399,7 +400,7 @@ public class GiocatoriList extends EntityQuery<Giocatori> {
 		Squadre squadra = new Squadre();
 		squadra.setId(squadraGiocatore.getId());
 		giocatoriHome.getInstance().setSquadre(squadra);
-		giocatoriHome.getInstance().setNome(nomeGiocatore);
+		giocatoriHome.getInstance().setNome(NomiUtils.pulisciNome(nomeGiocatore));
 		giocatoriHome.getInstance().setRuolo(ruolo);
 		giocatoriHome.getInstance().setQuotazIniziale(getQuotazioneFromString(quotazIniziale));
 		giocatoriHome.getInstance().setQuotazAttuale(getQuotazioneFromString(quotazAttuale));
@@ -414,7 +415,7 @@ public class GiocatoriList extends EntityQuery<Giocatori> {
 		Squadre squadra = new Squadre();
 		squadra.setId(squadraGiocatore.getId());
 		giocatoriHome.getInstance().setSquadre(squadra);
-		giocatoriHome.getInstance().setNome(nomeGiocatore);
+		giocatoriHome.getInstance().setNome(NomiUtils.pulisciNome(nomeGiocatore));
 		giocatoriHome.getInstance().setRuolo(ruolo);
 		giocatoriHome.getInstance().setQuotazIniziale(getQuotazioneFromString(quotazIniziale));
 		giocatoriHome.getInstance().setQuotazAttuale(getQuotazioneFromString(quotazAttuale));

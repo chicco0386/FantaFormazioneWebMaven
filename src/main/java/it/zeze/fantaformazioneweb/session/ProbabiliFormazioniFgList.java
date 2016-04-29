@@ -197,6 +197,7 @@ public class ProbabiliFormazioniFgList extends EntityQuery<ProbabiliFormazioniFg
 		try {
 			String currentGiornata = HtmlCleanerUtil.getAttributeValueFromFile(fileToElaborate.getAbsolutePath(), "id", "id_giornata", "value");
 			int idGiornata = giornateList.getIdGiornata(Integer.valueOf(currentGiornata), stagione);
+			deleteByIdGiornata(idGiornata);
 			List<TagNode> listRootTagSquadre = HtmlCleanerUtil.getListOfElementsByAttributeFromFile(fileToElaborate.getAbsolutePath(), "id", "sqtab");
 			if (listRootTagSquadre != null && !listRootTagSquadre.isEmpty()) {
 				TagNode rootTag = listRootTagSquadre.get(0);

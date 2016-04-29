@@ -158,7 +158,7 @@ public class SquadreList extends EntityQuery<Squadre> {
 		nomeSquadraToSearch = nomeSquadraToSearch.toUpperCase();
 		EntityManager em = getEntityManager();
 		Query query = em.createQuery(QUERY_GET_SQUADRA_BY_NAME);
-		query.setParameter("nomeSquadra", nomeSquadraToSearch.trim());
+		query.setParameter("nomeSquadra", nomeSquadraToSearch.trim().toUpperCase());
 		try {
 			return (Squadre) query.getSingleResult();
 		} catch (NoResultException e) {
