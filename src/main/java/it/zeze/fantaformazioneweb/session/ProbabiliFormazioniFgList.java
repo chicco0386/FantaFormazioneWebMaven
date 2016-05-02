@@ -233,7 +233,7 @@ public class ProbabiliFormazioniFgList extends EntityQuery<ProbabiliFormazioniFg
 				// Recupero lista giocatori
 				List<TagNode> listaGiocatori = HtmlCleanerUtil.getListOfElementsByXPathSpecialFromElement(nodePartita, "//div[contains(@class,'probbar')]");
 				TagNode titolariCasa = listaGiocatori.get(0);
-				List<TagNode> listTitolariCasa = unmarshallAndSaveGiocatoriCasaNEW(titolariCasa);
+				List<TagNode> listTitolariCasa = unmarshallAndSaveGiocatoriCasaNEW(titolariCasa, true);
 				log.info("Giocatori TITOLARI CASA [" + listTitolariCasa.size() + "]");
 				String giocatoreNome = null;
 				String giocatoreRuolo = null;
@@ -244,7 +244,7 @@ public class ProbabiliFormazioniFgList extends EntityQuery<ProbabiliFormazioniFg
 					log.info(giocatoreNome + " - " + giocatoreRuolo);
 				}
 				TagNode panchinaCasa = listaGiocatori.get(2);
-				List<TagNode> listPanchinaCasa = unmarshallAndSaveGiocatoriCasaNEW(panchinaCasa);
+				List<TagNode> listPanchinaCasa = unmarshallAndSaveGiocatoriCasaNEW(panchinaCasa, false);
 				log.info("Giocatori PANCHINA CASA [" + listPanchinaCasa.size() + "]");
 				for (TagNode current : listPanchinaCasa) {
 					giocatoreNome = getNomeGiocatore(current);
@@ -257,7 +257,7 @@ public class ProbabiliFormazioniFgList extends EntityQuery<ProbabiliFormazioniFg
 				nomeSquadra = listSquadreFuori.get(0).getElementsByName("h3", true)[0].getText().toString();
 				log.info("Squadra FUORI [" + nomeSquadra + "]");
 				TagNode titolariFuori = listaGiocatori.get(1);
-				List<TagNode> listTitolariFuori = unmarshallAndSaveGiocatoriFuoriNEW(titolariFuori);
+				List<TagNode> listTitolariFuori = unmarshallAndSaveGiocatoriFuoriNEW(titolariFuori, true);
 				log.info("Giocatori TITOLARI FUORI [" + listTitolariFuori.size() + "]");
 				for (TagNode current : listTitolariFuori) {
 					giocatoreNome = getNomeGiocatore(current);
@@ -266,7 +266,7 @@ public class ProbabiliFormazioniFgList extends EntityQuery<ProbabiliFormazioniFg
 					log.info(getNomeGiocatore(current) + " - " + getRuoloGiocatore(current));
 				}
 				TagNode panchinaFuori = listaGiocatori.get(3);
-				List<TagNode> listPanchinaFuori = unmarshallAndSaveGiocatoriFuoriNEW(panchinaFuori);
+				List<TagNode> listPanchinaFuori = unmarshallAndSaveGiocatoriFuoriNEW(panchinaFuori, false);
 				log.info("Giocatori PANCHINA FUORI [" + listPanchinaFuori.size() + "]");
 				for (TagNode current : listPanchinaFuori) {
 					giocatoreNome = getNomeGiocatore(current);
@@ -287,17 +287,17 @@ public class ProbabiliFormazioniFgList extends EntityQuery<ProbabiliFormazioniFg
 		}
 	}
 
-	private List<TagNode> unmarshallAndSaveGiocatoriCasaNEW(TagNode nodeGiocatoriCasa) throws IOException, XPatherException {
+	private List<TagNode> unmarshallAndSaveGiocatoriCasaNEW(TagNode nodeGiocatoriCasa, boolean titolari) throws IOException, XPatherException {
 		List<TagNode> listGiocatoriCasa = HtmlCleanerUtil.getListOfElementsByAttributeFromElement(nodeGiocatoriCasa, "class", "pgroup lf");
-		if (listGiocatoriCasa.size() > 11){
+		if (titolari && listGiocatoriCasa.size() > 11){
 			listGiocatoriCasa = listGiocatoriCasa.subList(0, 11);
 		}
 		return listGiocatoriCasa;
 	}
 
-	private List<TagNode> unmarshallAndSaveGiocatoriFuoriNEW(TagNode nodeGiocatoriCasa) throws IOException, XPatherException {
+	private List<TagNode> unmarshallAndSaveGiocatoriFuoriNEW(TagNode nodeGiocatoriCasa, boolean titolari) throws IOException, XPatherException {
 		List<TagNode> listGiocatoriFuori = HtmlCleanerUtil.getListOfElementsByAttributeFromElement(nodeGiocatoriCasa, "class", "pgroup rt");
-		if (listGiocatoriFuori.size() > 11){
+		if (titolari && listGiocatoriFuori.size() > 11){
 			listGiocatoriFuori = listGiocatoriFuori.subList(0, 11);
 		}
 		return listGiocatoriFuori;
