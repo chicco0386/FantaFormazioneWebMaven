@@ -1,14 +1,11 @@
 package it.zeze.fantaformazioneweb.session;
 
-import it.zeze.fantaformazioneweb.entity.Calendario;
-import it.zeze.fantaformazioneweb.entity.CalendarioId;
-import it.zeze.fantaformazioneweb.entity.Squadre;
-import it.zeze.html.cleaner.HtmlCleanerUtil;
-
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.Query;
@@ -20,6 +17,12 @@ import org.jboss.seam.annotations.Logger;
 import org.jboss.seam.annotations.Name;
 import org.jboss.seam.framework.EntityQuery;
 import org.jboss.seam.log.Log;
+
+import it.zeze.fanta.service.definition.ejb.CalendarioRemote;
+import it.zeze.fantaformazioneweb.entity.Calendario;
+import it.zeze.fantaformazioneweb.entity.CalendarioId;
+import it.zeze.fantaformazioneweb.entity.Squadre;
+import it.zeze.html.cleaner.HtmlCleanerUtil;
 
 @Name("calendarioList")
 public class CalendarioList extends EntityQuery<Calendario> {
@@ -61,6 +64,18 @@ public class CalendarioList extends EntityQuery<Calendario> {
 	public void inizializzaCalendario() {
 		squadreList.unmarshallAndSaveFromHtmlFile();
 		giornateList.unmarshallAndSaveFromHtmlFile();
+		
+		try {
+			//Get the Initial Context for the JNDI lookup for a local EJB
+			InitialContext ic = new InitialContext();
+			//Retrieve the Home interface using JNDI lookup
+			
+			CalendarioRemote calendarioEJB = (CalendarioRemote) ic.lookup("java:global/FantaFormazioneEAR/FantaWebService-0.0.1-SNAPSHOT/CalendarioEJB!it.zeze.fanta.service.definition.ejb.CalendarioRemote");
+			log.info(calendarioEJB.getNomeSquadraAvversaria(-1, -1));
+		} catch (NamingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	public void unmarshallAndSaveFromNodeCalendario(int idGiornata, TagNode calendarNode) {
