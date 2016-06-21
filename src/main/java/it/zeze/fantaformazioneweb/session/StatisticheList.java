@@ -1,7 +1,5 @@
 package it.zeze.fantaformazioneweb.session;
 
-import java.io.File;
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
@@ -12,15 +10,9 @@ import java.util.List;
 import javax.naming.NamingException;
 import javax.persistence.NoResultException;
 import javax.persistence.Query;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactoryConfigurationError;
-import javax.xml.xpath.XPathExpressionException;
 
 import org.apache.commons.collections.comparators.ComparatorChain;
 import org.apache.commons.lang.StringUtils;
-import org.htmlcleaner.TagNode;
-import org.htmlcleaner.XPatherException;
 import org.jboss.seam.annotations.In;
 import org.jboss.seam.annotations.Logger;
 import org.jboss.seam.annotations.Name;
@@ -33,8 +25,6 @@ import it.zeze.fantaformazioneweb.entity.Giocatori;
 import it.zeze.fantaformazioneweb.entity.Giornate;
 import it.zeze.fantaformazioneweb.entity.Statistiche;
 import it.zeze.fantaformazioneweb.entity.StatisticheId;
-import it.zeze.html.cleaner.HtmlCleanerUtil;
-import it.zeze.util.Constants;
 
 @Name("statisticheList")
 public class StatisticheList extends EntityQuery<Statistiche> {
@@ -233,13 +223,6 @@ public class StatisticheList extends EntityQuery<Statistiche> {
 		statistiche = new Statistiche();
 		statistiche.setId(new StatisticheId());
 		setEjbql(EJBQL);
-		// if (statistiche.getId().getIdGiornata() < 1) {
-		// setRestrictionExpressionStrings(Arrays
-		// .asList(RESTRICTIONS_NO_GIORNATA));
-		// } else {
-		// setRestrictionExpressionStrings(Arrays.asList(RESTRICTIONS));
-		// }
-		// setMaxResults(25);
 	}
 
 	public Statistiche getStatistiche() {
@@ -268,35 +251,10 @@ public class StatisticheList extends EntityQuery<Statistiche> {
 	}
 
 	public Statistiche getStatisticheIdGiocatoreIdGiornata(int idGiocatore, int idGiornata) {
-		Statistiche toReturn = null;
-		Query query = getEntityManager().createQuery(SELECT_BY_ID_GIOCATORE_ID_GIORNATE);
-		query.setParameter("idGiocatore", idGiocatore);
-		if (idGiornata > 1) {
-			query.setParameter("idGiornata", idGiornata - 1);
-		} else if (idGiornata == 1) {
-			query.setParameter("idGiornata", idGiornata);
-		}
-		try {
-			toReturn = (Statistiche) query.getSingleResult();
-		} catch (NoResultException e) {
-			log.error("Nessun risultato tovato con idGiocatore [" + idGiocatore + "] e idGiornata [" + idGiornata + "]");
-		}
-		return toReturn;
+		return statisticheEJB.getStatisticheIdGiocatoreIdGiornata(idGiocatore, idGiornata);
 	}
 
-	public List<Statistiche> getStatisticheIdGiocatore(int idGiocatore) {
-		List<Statistiche> toReturn = null;
-		Query query = getEntityManager().createQuery(SELECT_BY_ID_GIOCATORE);
-		query.setParameter("idGiocatore", idGiocatore);
-		try {
-			toReturn = (List<Statistiche>) query.getResultList();
-		} catch (NoResultException e) {
-			log.error("Nessun risultato tovato con idGiocatore [" + idGiocatore + "]");
-		}
-		return toReturn;
-	}
-
-	public List<Statistiche> getStatisticheIdGiocatoreAndStagione(int idGiocatore, String stagione) {
+	private List<Statistiche> getStatisticheIdGiocatoreAndStagione(int idGiocatore, String stagione) {
 		List<Statistiche> toReturn = null;
 		String stagioneParse = giornateList.getStagione(stagione);
 		Query query = getEntityManager().createQuery(SELECT_BY_ID_GIOCATORE_STAGIONE);
