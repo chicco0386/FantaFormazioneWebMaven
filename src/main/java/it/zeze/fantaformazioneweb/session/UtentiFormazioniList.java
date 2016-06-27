@@ -5,7 +5,6 @@ import java.util.Arrays;
 
 import javax.naming.NamingException;
 
-import org.jboss.seam.annotations.In;
 import org.jboss.seam.annotations.Logger;
 import org.jboss.seam.annotations.Name;
 import org.jboss.seam.framework.EntityQuery;
@@ -14,7 +13,7 @@ import org.jboss.seam.log.Log;
 
 import it.zeze.fanta.ejb.util.JNDIUtils;
 import it.zeze.fanta.service.bean.ServiceResponse;
-import it.zeze.fanta.service.definition.ejb.UtentiFormazioniRemote;
+import it.zeze.fanta.service.definition.ejb.proxy.seam.UtentiFormazioniSeamRemote;
 import it.zeze.fantaformazioneweb.bean.util.Utility;
 import it.zeze.fantaformazioneweb.entity.UtentiFormazioni;
 
@@ -25,14 +24,8 @@ public class UtentiFormazioniList extends EntityQuery<UtentiFormazioni> {
 
 	@Logger
 	static Log log;
-
-	@In(create = true)
-	FormazioniList formazioniList;
 	
-	@In(create = true)
-	ProbabiliFormazioniList probabiliFormazioniList;
-	
-	private static UtentiFormazioniRemote utentiFormazioniEJB;
+	private static UtentiFormazioniSeamRemote utentiFormazioniEJB;
 	
 	static{
 		try {
@@ -78,7 +71,7 @@ public class UtentiFormazioniList extends EntityQuery<UtentiFormazioni> {
 	}
 
 	public UtentiFormazioni getUtentiFormazioniByIdAndIdUtente(int idUtenteFormazione, int idUtente) {
-		return utentiFormazioniEJB.getUtentiFormazioniByIdAndIdUtente(idUtenteFormazione, idUtente);
+		return utentiFormazioniEJB.getUtentiFormazioniByIdAndIdUtente(idUtenteFormazione, idUtente).unwrap();
 	}
 
 	public UtentiFormazioni getUtentiFormazioni() {
