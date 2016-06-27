@@ -13,10 +13,8 @@ import org.jboss.seam.log.Log;
 
 import it.zeze.fanta.ejb.util.JNDIUtils;
 import it.zeze.fanta.service.definition.ejb.proxy.seam.CalendarioSeamRemote;
-import it.zeze.fanta.service.definition.ejb.proxy.seam.GiocatoriSeamRemote;
 import it.zeze.fantaformazioneweb.entity.Calendario;
 import it.zeze.fantaformazioneweb.entity.CalendarioId;
-import it.zeze.fantaformazioneweb.entity.wrapper.GiocatoriWrap;
 
 @Name("calendarioList")
 public class CalendarioList extends EntityQuery<Calendario> {
@@ -26,7 +24,6 @@ public class CalendarioList extends EntityQuery<Calendario> {
 	@Logger
 	static Log log;
 
-	private static GiocatoriSeamRemote giocatoriEJB;
 	private static CalendarioSeamRemote calendarioEJB;
 
 	@In(create = true)
@@ -35,18 +32,12 @@ public class CalendarioList extends EntityQuery<Calendario> {
 	@In(create = true)
 	GiornateList giornateList;
 
-	@In(create = true)
-	CalendarioHome calendarioHome;
-
 	private static final String EJBQL = "select calendario from Calendario calendario";
-
-	private static final String GET_CALENDARIO_BY_ID_GIOR_ID_SQUADRA = "select calendario from Calendario calendario where calendario.id.idGiornata = :idGiornata AND (calendario.id.idSquadraCasa = :idSquadra OR calendario.id.idSquadraFuoriCasa = :idSquadra)";
 
 	private static final String[] RESTRICTIONS = {};
 
 	static {
 		try {
-			giocatoriEJB = JNDIUtils.getGiocatoriSeamEJB();
 			calendarioEJB = JNDIUtils.getCalendarioEJB();
 		} catch (NamingException e) {
 			// TODO Auto-generated catch block
@@ -69,9 +60,6 @@ public class CalendarioList extends EntityQuery<Calendario> {
 	}
 
 	public void inizializzaCalendario() {
-		GiocatoriWrap giocatore = giocatoriEJB.getGiocatoreById(34);
-		log.info(giocatore.getNome());
-		log.info(giocatore.getSquadre().getNome());
 		squadreList.unmarshallAndSaveFromHtmlFile();
 		giornateList.unmarshallAndSaveFromHtmlFile();
 	}
