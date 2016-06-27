@@ -1,6 +1,7 @@
 package it.zeze.fantaformazioneweb.session;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.naming.NamingException;
@@ -15,12 +16,14 @@ import org.jboss.seam.log.Log;
 import it.zeze.fanta.ejb.util.JNDIUtils;
 import it.zeze.fanta.service.bean.GiocatoriMercato;
 import it.zeze.fanta.service.bean.ServiceResponse;
-import it.zeze.fanta.service.definition.ejb.FormazioniRemote;
+import it.zeze.fanta.service.definition.ejb.proxy.seam.FormazioniSeamRemote;
 import it.zeze.fantaformazioneweb.bean.FormazioneBean;
 import it.zeze.fantaformazioneweb.bean.util.Utility;
 import it.zeze.fantaformazioneweb.entity.Formazioni;
 import it.zeze.fantaformazioneweb.entity.FormazioniId;
 import it.zeze.fantaformazioneweb.entity.Giocatori;
+import it.zeze.fantaformazioneweb.entity.wrapper.FormazioniWrap;
+import it.zeze.fantaformazioneweb.entity.wrapper.GiocatoriWrap;
 
 @Name("formazioniList")
 public class FormazioniList extends EntityQuery<Formazioni> {
@@ -33,7 +36,7 @@ public class FormazioniList extends EntityQuery<Formazioni> {
 	@In(create = true)
 	FormazioneBean formazioneBean;
 	
-	private static FormazioniRemote formazioniEJB;
+	private static FormazioniSeamRemote formazioniEJB;
 	
 	static {
 		try {
@@ -66,7 +69,11 @@ public class FormazioniList extends EntityQuery<Formazioni> {
 
 	public boolean insertFormazione(String nomeFormazione, List<Giocatori> listaGiocatori, int idUtente, int idUtenteFormazioneToUpdate) {
 		boolean toReturn = false;
-		ServiceResponse response = formazioniEJB.insertFormazione(nomeFormazione, listaGiocatori, idUtente, idUtenteFormazioneToUpdate);
+		List<GiocatoriWrap> toPass = new ArrayList<GiocatoriWrap>();
+		for (Giocatori current : listaGiocatori){
+			toPass.add(new GiocatoriWrap(current));
+		}
+		ServiceResponse response = formazioniEJB.insertFormazione(nomeFormazione, toPass, idUtente, idUtenteFormazioneToUpdate);
 		toReturn = (Boolean) response.getObjectResponse();
 		Utility.convertServiceResponseToStatusMessage(StatusMessages.instance(), response);
 		return toReturn;
@@ -81,7 +88,11 @@ public class FormazioniList extends EntityQuery<Formazioni> {
 	}
 
 	public List<Formazioni> selectFormazioniByIdUtenteFormazioni(int idUtentiFormazioni) {
-		List<Formazioni> toReturn = formazioniEJB.selectFormazioniByIdUtenteFormazioni(idUtentiFormazioni);
+		List<Formazioni> toReturn = new ArrayList<Formazioni>();
+		List<FormazioniWrap> ejbResp = formazioniEJB.selectFormazioniByIdUtenteFormazioni(idUtentiFormazioni);
+		for (FormazioniWrap current : ejbResp){
+			toReturn.add(current.unwrap());
+		}
 		return toReturn;
 	}
 	

@@ -1,22 +1,22 @@
 package it.zeze.fantaformazioneweb.session;
 
-import it.zeze.fantaformazioneweb.entity.Utenti;
-import it.zeze.fantaformazioneweb.entity.UtentiFormazioni;
-
 import java.math.BigDecimal;
 import java.util.Arrays;
-import java.util.List;
 
-import javax.persistence.Query;
+import javax.naming.NamingException;
 
-import org.apache.commons.lang.StringUtils;
 import org.jboss.seam.annotations.In;
 import org.jboss.seam.annotations.Logger;
 import org.jboss.seam.annotations.Name;
 import org.jboss.seam.framework.EntityQuery;
-import org.jboss.seam.international.StatusMessage.Severity;
 import org.jboss.seam.international.StatusMessages;
 import org.jboss.seam.log.Log;
+
+import it.zeze.fanta.ejb.util.JNDIUtils;
+import it.zeze.fanta.service.bean.ServiceResponse;
+import it.zeze.fanta.service.definition.ejb.UtentiFormazioniRemote;
+import it.zeze.fantaformazioneweb.bean.util.Utility;
+import it.zeze.fantaformazioneweb.entity.UtentiFormazioni;
 
 @Name("utentiFormazioniList")
 public class UtentiFormazioniList extends EntityQuery<UtentiFormazioni> {
@@ -31,14 +31,21 @@ public class UtentiFormazioniList extends EntityQuery<UtentiFormazioni> {
 	
 	@In(create = true)
 	ProbabiliFormazioniList probabiliFormazioniList;
+	
+	private static UtentiFormazioniRemote utentiFormazioniEJB;
+	
+	static{
+		try {
+			utentiFormazioniEJB = JNDIUtils.getUtentiFormazioniEJB();
+		} catch (NamingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 
 	private static final String EJBQL = "select utentiFormazioni from UtentiFormazioni utentiFormazioni";
 
 	private static final String[] RESTRICTIONS = { "lower(utentiFormazioni.nomeFormazione) like lower(concat(#{utentiFormazioniList.utentiFormazioni.nomeFormazione},'%'))", };
-
-	private static final String SELECT_BY_NOME_AND_UTENTE_ID = "select utentiFormazioni from UtentiFormazioni utentiFormazioni where utentiFormazioni.nomeFormazione=:nomeFormazione and utentiFormazioni.utenti.id=:idUtente";
-	private static final String SELECT_BY_ID_AND_UTENTE_ID = "select utentiFormazioni from UtentiFormazioni utentiFormazioni where utentiFormazioni.id=:idUtenteFormazione and utentiFormazioni.utenti.id=:idUtente";
-	private static final String DELETE_BY_ID_AND_UTENTE_ID = "delete from UtentiFormazioni utentiFormazioni where utentiFormazioni.id=:idUtenteFormazione and utentiFormazioni.utenti.id=:idUtente";
 
 	private UtentiFormazioni utentiFormazioni = new UtentiFormazioni();
 
@@ -49,96 +56,29 @@ public class UtentiFormazioniList extends EntityQuery<UtentiFormazioni> {
 	}
 
 	public UtentiFormazioni insertUtenteFormazione(String nomeFormazione, int idUtente, BigDecimal crediti) {
-		log.info("Start inserimento formazione [" + nomeFormazione + "] dell'utente con id [" + idUtente + "]");
-		UtentiFormazioni toReturn = null;
-		if (nomeFormazione == null || StringUtils.isBlank(nomeFormazione)) {
-			StatusMessages.instance().add(Severity.ERROR, "Devi inserire il nome della tua formazione");
-		} else if (esisteUtentiFormazioni(nomeFormazione, idUtente)) {
-			StatusMessages.instance().add(Severity.ERROR, "Hai gi� inserito una formazione con questo nome");
-		} else {
-			UtentiFormazioni toInsert = new UtentiFormazioni();
-			Utenti utenteToInsert = new Utenti();
-			utenteToInsert.setId(idUtente);
-			toInsert.setUtenti(utenteToInsert);
-			toInsert.setNomeFormazione(nomeFormazione);
-			if (crediti != null) {
-				toInsert.setCrediti(crediti);
-			}
-			getEntityManager().persist(toInsert);
-			getEntityManager().flush();
-			toReturn = getUtentiFormazioniId(nomeFormazione, idUtente);
-			log.info("End inserita utente formazione con ID [" + toReturn.getId() + "]");
-		}
+		ServiceResponse ejbResp = utentiFormazioniEJB.insertUtenteFormazione(nomeFormazione, idUtente, crediti);
+		Utility.convertServiceResponseToStatusMessage(StatusMessages.instance(), ejbResp);
+		UtentiFormazioni toReturn = (UtentiFormazioni) ejbResp.getObjectResponse();
 		return toReturn;
 	}
 
 	public UtentiFormazioni updateUtenteFormazione(int idUtentiFormazioni, String nomeFormazione, int idUtente, BigDecimal crediti) {
-		log.info("Start update formazione id [" + idUtentiFormazioni + "] dell'utente con id [" + idUtente + "] con [" + nomeFormazione + "]");
-		UtentiFormazioni toReturn = null;
-		if (nomeFormazione == null || StringUtils.isBlank(nomeFormazione)) {
-			StatusMessages.instance().add(Severity.ERROR, "Devi inserire il nome della tua formazione");
-		} else if (idUtentiFormazioni != -1) {
-			toReturn = getUtentiFormazioniByIdAndIdUtente(idUtentiFormazioni, idUtente);
-			toReturn.setNomeFormazione(nomeFormazione);
-			if (crediti != null) {
-				toReturn.setCrediti(crediti);
-			}
-			getEntityManager().persist(toReturn);
-			log.info("End update utente formazione con ID [" + toReturn.getId() + "]");
-		}
+		ServiceResponse ejbResp = utentiFormazioniEJB.updateUtenteFormazione(idUtentiFormazioni, nomeFormazione, idUtente, crediti);
+		Utility.convertServiceResponseToStatusMessage(StatusMessages.instance(), ejbResp);
+		UtentiFormazioni toReturn = (UtentiFormazioni) ejbResp.getObjectResponse();
 		return toReturn;
 	}
 
 	public boolean esisteUtentiFormazioni(String nomeFormazione, int idUtente) {
-		boolean exist = false;
-		UtentiFormazioni utenteFormazioneReturned = getUtentiFormazioniId(nomeFormazione, idUtente);
-		if (utenteFormazioneReturned != null) {
-			exist = true;
-		}
-		return exist;
+		return utentiFormazioniEJB.esisteUtentiFormazioni(nomeFormazione, idUtente);
 	}
 
 	public boolean esisteUtentiFormazioni(int idUtenteFormazione, int idUtente) {
-		boolean exist = false;
-		UtentiFormazioni utenteFormazioneReturned = getUtentiFormazioniByIdAndIdUtente(idUtenteFormazione, idUtente);
-		if (utenteFormazioneReturned != null) {
-			exist = true;
-		}
-		return exist;
-	}
-
-	public UtentiFormazioni getUtentiFormazioniId(String nomeFormazione, int idUtente) {
-		UtentiFormazioni toReturn = null;
-		Query query = getEntityManager().createQuery(SELECT_BY_NOME_AND_UTENTE_ID);
-		query.setParameter("nomeFormazione", nomeFormazione);
-		query.setParameter("idUtente", idUtente);
-		List<UtentiFormazioni> resultList = query.getResultList();
-		if (resultList.isEmpty()) {
-			log.error("Nessun utentiFormazione trovato con nome [" + nomeFormazione + "] ID utente [" + idUtente + "]");
-		} else {
-			toReturn = resultList.get(0);
-		}
-		return toReturn;
+		return esisteUtentiFormazioni(idUtenteFormazione, idUtente);
 	}
 
 	public UtentiFormazioni getUtentiFormazioniByIdAndIdUtente(int idUtenteFormazione, int idUtente) {
-		UtentiFormazioni toReturn = null;
-		Query query = getEntityManager().createQuery(SELECT_BY_ID_AND_UTENTE_ID);
-		query.setParameter("idUtenteFormazione", idUtenteFormazione);
-		query.setParameter("idUtente", idUtente);
-		List<UtentiFormazioni> resultList = query.getResultList();
-		if (resultList != null && resultList.size() == 0) {
-			log.error("Nessun utentiFormazione trovato con ID [" + idUtenteFormazione + "] ID utente [" + idUtente + "]");
-		} else {
-			toReturn = resultList.get(0);
-		}
-		return toReturn;
-	}
-
-	private void copiaUtentiFormazioni(int idUtenteFormazione, int idUtente) {
-		UtentiFormazioni currentUF = getUtentiFormazioniByIdAndIdUtente(idUtenteFormazione, idUtente);
-		String nomeCopia = currentUF.getNomeFormazione().concat("_copy");
-		log.info("TODO COPY");
+		return utentiFormazioniEJB.getUtentiFormazioniByIdAndIdUtente(idUtenteFormazione, idUtente);
 	}
 
 	public UtentiFormazioni getUtentiFormazioni() {
@@ -146,11 +86,6 @@ public class UtentiFormazioniList extends EntityQuery<UtentiFormazioni> {
 	}
 
 	public void delete(int idUtentiFormazioni, int idUtente) {
-		formazioniList.deleteGiocatoreByIdFormazione(idUtentiFormazioni);
-		probabiliFormazioniList.deleteProbFormazioniByUtentiFormazione(idUtentiFormazioni);
-		Query query = getEntityManager().createQuery(DELETE_BY_ID_AND_UTENTE_ID);
-		query.setParameter("idUtenteFormazione", idUtentiFormazioni);
-		query.setParameter("idUtente", idUtente);
-		query.executeUpdate();
+		utentiFormazioniEJB.delete(idUtentiFormazioni, idUtente);
 	}
 }
