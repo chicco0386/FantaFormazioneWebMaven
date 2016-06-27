@@ -67,7 +67,7 @@ public class UtentiFormazioniList extends EntityQuery<UtentiFormazioni> {
 	}
 
 	public boolean esisteUtentiFormazioni(int idUtenteFormazione, int idUtente) {
-		return esisteUtentiFormazioni(idUtenteFormazione, idUtente);
+		return utentiFormazioniEJB.esisteUtentiFormazioni(idUtenteFormazione, idUtente);
 	}
 
 	public UtentiFormazioni getUtentiFormazioniByIdAndIdUtente(int idUtenteFormazione, int idUtente) {

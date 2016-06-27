@@ -23,14 +23,11 @@ public class CalendarioList extends EntityQuery<Calendario> {
 
 	@Logger
 	static Log log;
+	
+	@In(create = true)
+	SessionInfo sessionInfo;
 
 	private static CalendarioSeamRemote calendarioEJB;
-
-	@In(create = true)
-	SquadreList squadreList;
-
-	@In(create = true)
-	GiornateList giornateList;
 
 	private static final String EJBQL = "select calendario from Calendario calendario";
 
@@ -60,8 +57,8 @@ public class CalendarioList extends EntityQuery<Calendario> {
 	}
 
 	public void inizializzaCalendario() {
-		squadreList.unmarshallAndSaveFromHtmlFile();
-		giornateList.unmarshallAndSaveFromHtmlFile();
+		String stagione = sessionInfo.getStagione();
+		calendarioEJB.inizializzaCalendario(stagione);
 	}
 
 	public void unmarshallAndSaveFromNodeCalendario(int idGiornata, TagNode calendarNode) {

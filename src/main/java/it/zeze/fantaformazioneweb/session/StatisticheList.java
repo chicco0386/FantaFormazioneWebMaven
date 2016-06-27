@@ -12,6 +12,7 @@ import org.jboss.seam.framework.EntityQuery;
 import org.jboss.seam.log.Log;
 
 import it.zeze.fanta.ejb.util.JNDIUtils;
+import it.zeze.fanta.service.definition.ejb.proxy.seam.GiornateSeamRemote;
 import it.zeze.fanta.service.definition.ejb.proxy.seam.StatisticheSeamRemote;
 import it.zeze.fantaformazioneweb.entity.Giocatori;
 import it.zeze.fantaformazioneweb.entity.Giornate;
@@ -28,15 +29,6 @@ public class StatisticheList extends EntityQuery<Statistiche> {
 	static Log log;
 
 	@In(create = true)
-	GiornateList giornateList;
-
-	@In(create = true)
-	GiocatoriList giocatoriList;
-
-	@In(create = true)
-	StatisticheHome statisticheHome;
-
-	@In(create = true)
 	SessionInfo sessionInfo;
 
 	private static final String EJBQL = "select statistiche from Statistiche statistiche";
@@ -49,6 +41,7 @@ public class StatisticheList extends EntityQuery<Statistiche> {
 	private List<Statistiche> resumeStatistiche = new ArrayList<Statistiche>();
 	
 	private static StatisticheSeamRemote statisticheEJB;
+	private static GiornateSeamRemote giornateEJB;
 	
 	static {
 		try {
@@ -115,7 +108,7 @@ public class StatisticheList extends EntityQuery<Statistiche> {
 	}
 
 	public void setLastStagione() {
-		Giornate lastGiornata = giornateList.getLastGiornata();
+		Giornate lastGiornata = giornateEJB.getLastGiornata();
 		if (lastGiornata != null) {
 			if (this.giornate.getStagione() == null || this.giornate.getStagione().isEmpty()) {
 				this.giornate.setStagione(lastGiornata.getStagione());

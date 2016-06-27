@@ -6,7 +6,6 @@ import java.util.List;
 
 import javax.naming.NamingException;
 
-import org.jboss.seam.annotations.In;
 import org.jboss.seam.annotations.Logger;
 import org.jboss.seam.annotations.Name;
 import org.jboss.seam.framework.EntityQuery;
@@ -26,12 +25,6 @@ public class ProbabiliFormazioniList extends EntityQuery<ProbabiliFormazioni> {
 
 	@Logger
 	static Log log;
-
-	@In(create = true)
-	StatisticheList statisticheList;
-
-	@In(create = true)
-	GiornateList giornateList;
 	
 	private static ProbabiliFormazioniSeamRemote probabiliFormazioniEJB;
 	

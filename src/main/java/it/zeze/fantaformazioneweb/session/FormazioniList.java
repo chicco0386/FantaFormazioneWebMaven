@@ -6,7 +6,6 @@ import java.util.List;
 
 import javax.naming.NamingException;
 
-import org.jboss.seam.annotations.In;
 import org.jboss.seam.annotations.Logger;
 import org.jboss.seam.annotations.Name;
 import org.jboss.seam.framework.EntityQuery;
@@ -17,7 +16,6 @@ import it.zeze.fanta.ejb.util.JNDIUtils;
 import it.zeze.fanta.service.bean.GiocatoriMercato;
 import it.zeze.fanta.service.bean.ServiceResponse;
 import it.zeze.fanta.service.definition.ejb.proxy.seam.FormazioniSeamRemote;
-import it.zeze.fantaformazioneweb.bean.FormazioneBean;
 import it.zeze.fantaformazioneweb.bean.util.Utility;
 import it.zeze.fantaformazioneweb.entity.Formazioni;
 import it.zeze.fantaformazioneweb.entity.FormazioniId;
@@ -32,9 +30,6 @@ public class FormazioniList extends EntityQuery<Formazioni> {
 
 	@Logger
 	static Log log;
-
-	@In(create = true)
-	FormazioneBean formazioneBean;
 	
 	private static FormazioniSeamRemote formazioniEJB;
 	
