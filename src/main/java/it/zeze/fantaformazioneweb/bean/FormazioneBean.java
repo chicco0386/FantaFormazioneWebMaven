@@ -1,16 +1,7 @@
 package it.zeze.fantaformazioneweb.bean;
 
-import it.zeze.fantaformazioneweb.entity.Formazioni;
-import it.zeze.fantaformazioneweb.entity.Giocatori;
-import it.zeze.fantaformazioneweb.entity.UtentiFormazioni;
-import it.zeze.fantaformazioneweb.session.FormazioniList;
-import it.zeze.fantaformazioneweb.session.GiocatoriList;
-import it.zeze.fantaformazioneweb.session.UtentiFormazioniList;
-import it.zeze.util.GiocatoriComparator;
-
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -21,6 +12,15 @@ import org.jboss.seam.annotations.Name;
 import org.jboss.seam.annotations.Scope;
 import org.jboss.seam.annotations.datamodel.DataModel;
 import org.jboss.seam.log.Log;
+
+import it.zeze.fanta.service.bean.GiocatoriMercato;
+import it.zeze.fantaformazioneweb.entity.Formazioni;
+import it.zeze.fantaformazioneweb.entity.Giocatori;
+import it.zeze.fantaformazioneweb.entity.UtentiFormazioni;
+import it.zeze.fantaformazioneweb.session.FormazioniList;
+import it.zeze.fantaformazioneweb.session.GiocatoriList;
+import it.zeze.fantaformazioneweb.session.UtentiFormazioniList;
+import it.zeze.util.GiocatoriComparator;
 
 @Name("formazioneBean")
 @Scope(ScopeType.PAGE)

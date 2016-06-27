@@ -4,14 +4,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import it.zeze.fantaformazioneweb.bean.GiocatoriMercato;
-import it.zeze.fantaformazioneweb.entity.Giocatori;
-
 import org.jboss.seam.annotations.In;
 import org.jboss.seam.annotations.Logger;
 import org.jboss.seam.annotations.Name;
 import org.jboss.seam.framework.EntityQuery;
 import org.jboss.seam.log.Log;
+
+import it.zeze.fanta.service.bean.GiocatoriMercato;
+import it.zeze.fantaformazioneweb.entity.Giocatori;
 
 @Name("giocatoriMercatoList")
 public class GiocatoriMercatoList extends EntityQuery<GiocatoriMercato> {

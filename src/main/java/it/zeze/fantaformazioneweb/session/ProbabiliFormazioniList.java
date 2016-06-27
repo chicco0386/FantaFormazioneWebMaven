@@ -1,14 +1,10 @@
 package it.zeze.fantaformazioneweb.session;
 
-import it.zeze.fantaformazioneweb.entity.Giornate;
-import it.zeze.fantaformazioneweb.entity.ProbabiliFormazioni;
-import it.zeze.fantaformazioneweb.entity.ProbabiliFormazioniId;
-import it.zeze.util.Constants;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.naming.NamingException;
 import javax.persistence.Query;
 
 import org.jboss.seam.annotations.In;
@@ -16,6 +12,14 @@ import org.jboss.seam.annotations.Logger;
 import org.jboss.seam.annotations.Name;
 import org.jboss.seam.framework.EntityQuery;
 import org.jboss.seam.log.Log;
+
+import it.zeze.fanta.ejb.util.JNDIUtils;
+import it.zeze.fanta.service.definition.ejb.proxy.seam.ProbabiliFormazioniSeamRemote;
+import it.zeze.fantaformazioneweb.entity.Giornate;
+import it.zeze.fantaformazioneweb.entity.ProbabiliFormazioni;
+import it.zeze.fantaformazioneweb.entity.ProbabiliFormazioniId;
+import it.zeze.fantaformazioneweb.entity.wrapper.ProbabiliFormazioniWrap;
+import it.zeze.util.Constants;
 
 @Name("probabiliFormazioniList")
 public class ProbabiliFormazioniList extends EntityQuery<ProbabiliFormazioni> {
@@ -30,6 +34,17 @@ public class ProbabiliFormazioniList extends EntityQuery<ProbabiliFormazioni> {
 
 	@In(create = true)
 	GiornateList giornateList;
+	
+	private static ProbabiliFormazioniSeamRemote probabiliFormazioniEJB;
+	
+	static {
+		try {
+			probabiliFormazioniEJB = JNDIUtils.getProbabiliFormazioniEJB();
+		} catch (NamingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 
 	private static final String EJBQL = "select probabiliFormazioni from ProbabiliFormazioni probabiliFormazioni";
 
@@ -59,12 +74,15 @@ public class ProbabiliFormazioniList extends EntityQuery<ProbabiliFormazioni> {
 
 	public List<ProbabiliFormazioni> getRisultati(int idUtentiFormazione, String stagione, int numeroGiornata) {
 		List<ProbabiliFormazioni> toReturn = new ArrayList<ProbabiliFormazioni>();
-		if (idUtentiFormazione > -1 && (stagione != null && !stagione.isEmpty()) && numeroGiornata > -1) {
-			int idGiornata = giornateList.getIdGiornata(numeroGiornata, stagione);
-			probabiliFormazioni.getId().setIdGiornate(idGiornata);
-			toReturn = getProbFormazioniByGiornataUtentiFormazione(idGiornata, idUtentiFormazione);
+		List<ProbabiliFormazioniWrap> ejbResp = probabiliFormazioniEJB.getRisultati(idUtentiFormazione, stagione, numeroGiornata);
+		for (ProbabiliFormazioniWrap current : ejbResp){
+			toReturn.add(current.unwrap());
 		}
-		this.resultList = toReturn;
+		if (toReturn != null && !toReturn.isEmpty()){
+			int idGiornata = toReturn.get(0).getGiornate().getId();
+			probabiliFormazioni.getId().setIdGiornate(idGiornata);
+		}
+		resultList = toReturn;
 		return toReturn;
 	}
 

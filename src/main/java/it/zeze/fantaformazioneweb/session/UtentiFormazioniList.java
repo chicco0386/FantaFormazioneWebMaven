@@ -135,7 +135,7 @@ public class UtentiFormazioniList extends EntityQuery<UtentiFormazioni> {
 		return toReturn;
 	}
 
-	public void copiaUtentiFormazioni(int idUtenteFormazione, int idUtente) {
+	private void copiaUtentiFormazioni(int idUtenteFormazione, int idUtente) {
 		UtentiFormazioni currentUF = getUtentiFormazioniByIdAndIdUtente(idUtenteFormazione, idUtente);
 		String nomeCopia = currentUF.getNomeFormazione().concat("_copy");
 		log.info("TODO COPY");

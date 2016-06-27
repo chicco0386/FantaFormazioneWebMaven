@@ -25,6 +25,7 @@ import it.zeze.fantaformazioneweb.entity.Giocatori;
 import it.zeze.fantaformazioneweb.entity.Giornate;
 import it.zeze.fantaformazioneweb.entity.Statistiche;
 import it.zeze.fantaformazioneweb.entity.StatisticheId;
+import it.zeze.fantaformazioneweb.entity.wrapper.StatisticheWrap;
 
 @Name("statisticheList")
 public class StatisticheList extends EntityQuery<Statistiche> {
@@ -251,7 +252,8 @@ public class StatisticheList extends EntityQuery<Statistiche> {
 	}
 
 	public Statistiche getStatisticheIdGiocatoreIdGiornata(int idGiocatore, int idGiornata) {
-		return statisticheEJB.getStatisticheIdGiocatoreIdGiornata(idGiocatore, idGiornata);
+		StatisticheWrap ejbResponse = statisticheEJB.getStatisticheIdGiocatoreIdGiornata(idGiocatore, idGiornata); 
+		return ejbResponse.unwarp();
 	}
 
 	private List<Statistiche> getStatisticheIdGiocatoreAndStagione(int idGiocatore, String stagione) {
