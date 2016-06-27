@@ -1,18 +1,10 @@
 package it.zeze.fantaformazioneweb.session;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import javax.naming.NamingException;
-import javax.persistence.NoResultException;
-import javax.persistence.Query;
 
-import org.apache.commons.collections.comparators.ComparatorChain;
-import org.apache.commons.lang.StringUtils;
 import org.jboss.seam.annotations.In;
 import org.jboss.seam.annotations.Logger;
 import org.jboss.seam.annotations.Name;
@@ -47,15 +39,7 @@ public class StatisticheList extends EntityQuery<Statistiche> {
 	@In(create = true)
 	SessionInfo sessionInfo;
 
-	private static final String SELECT_BY_ID_GIOCATORE_ID_GIORNATE = "select statistiche from Statistiche statistiche where statistiche.id.idGiocatore=:idGiocatore and statistiche.id.idGiornata=:idGiornata";
-	private static final String SELECT_BY_ID_GIOCATORE_STAGIONE = "select statistiche from Statistiche statistiche, Giornate gior where statistiche.id.idGiocatore=:idGiocatore and statistiche.id.idGiornata=gior.id AND gior.stagione = :stagione";
-	private static final String SELECT_BY_ID_GIOCATORE = "select statistiche from Statistiche statistiche where statistiche.id.idGiocatore=:idGiocatore";
-	private static final String SELECT_COUNT_BY_ID_GIORNATA = "select count(statistiche.id.idGiornata) from Statistiche statistiche where statistiche.id.idGiornata=:idGiornata";
-
 	private static final String EJBQL = "select statistiche from Statistiche statistiche";
-
-	private static final String[] RESTRICTIONS = { "id.idGiornata = (#{statisticheList.statistiche.id.idGiornata})", "lower(giocatori.nome) like lower(concat('%', concat(#{statisticheList.giocatori.nome},'%')))", "lower(giocatori.ruolo) like lower(concat('%', concat(#{statisticheList.giocatori.ruolo},'%')))", "lower(giocatori.squadre.nome) like lower(concat('%', concat(#{statisticheList.giocatori.squadre.nome},'%')))", };
-	private static final String[] RESTRICTIONS_NO_GIORNATA = { "lower(giocatori.nome) like lower(concat('%', concat(#{statisticheList.giocatori.nome},'%')))", "lower(giocatori.ruolo) like lower(concat('%', concat(#{statisticheList.giocatori.ruolo},'%')))", "lower(giocatori.squadre.nome) like lower(concat('%', concat(#{statisticheList.giocatori.squadre.nome},'%')))", };
 
 	private Statistiche statistiche = new Statistiche();
 	private Giocatori giocatori = new Giocatori();
@@ -76,67 +60,8 @@ public class StatisticheList extends EntityQuery<Statistiche> {
 	}
 
 	public void initResultList() {
-		log.info("initResultList");
-		List<Statistiche> toReturn = new ArrayList<Statistiche>();
-		boolean wherePresente = false;
-		String newQuery = EJBQL;
-		if (getGiornate().getStagione() != null && !getGiornate().getStagione().isEmpty()) {
-			log.info("Stagione [" + getGiornate().getStagione() + "]");
-			newQuery = newQuery.concat(", Giornate giornate where statistiche.id.idGiornata = giornate.id AND giornate.stagione = '" + getGiornate().getStagione() + "'");
-			wherePresente = true;
-		}
-		if (getGiornate().getNumeroGiornata() != null && getGiornate().getNumeroGiornata() > 0) {
-			if (wherePresente) {
-				newQuery = newQuery.concat(" AND giornate.numeroGiornata = " + getGiornate().getNumeroGiornata());
-			} else {
-				newQuery = newQuery.concat(", Giornate giornate where statistiche.id.idGiornata = giornate.id");
-				newQuery = newQuery.concat(" AND giornate.numeroGiornata = " + getGiornate().getNumeroGiornata());
-				wherePresente = true;
-			}
-		}
-		if (getGiocatori().getNome() != null && !getGiocatori().getNome().isEmpty()) {
-			if (wherePresente) {
-				newQuery = newQuery.concat(" and statistiche.giocatori.nome LIKE'%" + getGiocatori().getNome()) + "%'";
-			} else {
-				newQuery = newQuery.concat(" where statistiche.giocatori.nome LIKE'%" + getGiocatori().getNome()) + "%'";
-				wherePresente = true;
-			}
-		}
-		if (getGiocatori().getRuolo() != null && !getGiocatori().getRuolo().isEmpty()) {
-			if (wherePresente) {
-				newQuery = newQuery.concat(" and statistiche.giocatori.ruolo LIKE'%" + getGiocatori().getRuolo()) + "%'";
-			} else {
-				newQuery = newQuery.concat(" where statistiche.giocatori.ruolo LIKE'%" + getGiocatori().getRuolo()) + "%'";
-				wherePresente = true;
-			}
-		}
-		if (getGiocatori().getSquadre().getNome() != null && !getGiocatori().getSquadre().getNome().isEmpty()) {
-			if (wherePresente) {
-				newQuery = newQuery.concat(" and statistiche.giocatori.squadre.nome LIKE'%" + getGiocatori().getSquadre().getNome()) + "%'";
-			} else {
-				newQuery = newQuery.concat(" where statistiche.giocatori.squadre.nome LIKE'%" + getGiocatori().getSquadre().getNome()) + "%'";
-				wherePresente = true;
-			}
-		}
-		if (getGiocatori().getQuotazAttuale() != null && getGiocatori().getQuotazAttuale().compareTo(BigDecimal.ZERO) > 0) {
-			if (wherePresente) {
-				newQuery = newQuery.concat(" and statistiche.giocatori.quotazAttuale <= " + getGiocatori().getQuotazAttuale().toPlainString());
-			} else {
-				newQuery = newQuery.concat(" where statistiche.giocatori.quotazAttuale <= " + getGiocatori().getQuotazAttuale().toPlainString());
-				wherePresente = true;
-			}
-		}
-		if (StringUtils.isNotBlank(getOrderColumn()) && StringUtils.isNotBlank(getOrderDirection())) {
-			newQuery = newQuery.concat(" order by " + getOrderColumn() + " " + getOrderDirection());
-		}
-		Query query = getEntityManager().createQuery(newQuery);
-		try {
-			toReturn = (List<Statistiche>) query.getResultList();
-		} catch (NoResultException e) {
-			log.error("Nessun risultato tovato per la query [" + newQuery + "]");
-		}
-		this.resultList = toReturn;
-		log.info("Statistiche [" + resultList.size() + "]");
+		List<StatisticheWrap> ejbResp = statisticheEJB.initResultList(giornate, giocatori, getOrderColumn(), getOrderDirection());
+		this.resultList = unwrapEjbResp(ejbResp);
 	}
 
 	@Override
@@ -145,75 +70,8 @@ public class StatisticheList extends EntityQuery<Statistiche> {
 	}
 
 	public void resetResumeStatistiche() {
-		log.info("getResumeStatistiche");
-		List<Statistiche> toReturn = new ArrayList<Statistiche>();
-		List<Statistiche> resultList = getResultList();
-		if (resultList.isEmpty()) {
-			initResultList();
-			resultList = getResultList();
-		}
-		// Raggruppo le statistiche di tutte le giornate per ogni giocatore
-		Statistiche currentStat;
-		int currentGiocatoreId;
-		// Tengo traccia degli idDa rimuovere e quindi conto anche le occorrenze
-		// dei match per fare la media sui voto poi
-		List<Integer> idToRemove = new ArrayList<Integer>();
-		for (int i = 0; i < resultList.size(); i++) {
-			currentStat = resultList.get(i);
-			currentGiocatoreId = currentStat.getId().getIdGiocatore();
-			if (!idToRemove.contains(currentGiocatoreId)) {
-				List<Statistiche> listStatGiocatore = getStatisticheIdGiocatoreAndStagione(currentGiocatoreId, this.giornate.getStagione());
-				for (int y = 0; y < listStatGiocatore.size(); y++) {
-					Statistiche currentStatToAdd = listStatGiocatore.get(y);
-					if (currentStatToAdd.getId().getIdGiocatore() == currentGiocatoreId) {
-						if (y == 0) {
-							currentStat = currentStatToAdd;
-						} else {
-							currentStat.getId().setAmmonizioni(currentStat.getId().getAmmonizioni() + currentStatToAdd.getId().getAmmonizioni());
-							currentStat.getId().setAssist(currentStat.getId().getAssist() + currentStatToAdd.getId().getAssist());
-							currentStat.getId().setAutoreti(currentStat.getId().getAutoreti() + currentStatToAdd.getId().getAutoreti());
-							currentStat.getId().setEspulsioni(currentStat.getId().getEspulsioni() + currentStatToAdd.getId().getEspulsioni());
-							currentStat.getId().setGoalFatti(currentStat.getId().getGoalFatti() + currentStatToAdd.getId().getGoalFatti());
-							currentStat.getId().setGoalRigore(currentStat.getId().getGoalRigore() + currentStatToAdd.getId().getGoalRigore());
-							currentStat.getId().setGoalSubiti(currentStat.getId().getGoalSubiti() + currentStatToAdd.getId().getGoalSubiti());
-							currentStat.getId().setRigoriParati(currentStat.getId().getRigoriParati() + currentStatToAdd.getId().getRigoriParati());
-							currentStat.getId().setRigoriSbagliati(currentStat.getId().getRigoriSbagliati() + currentStatToAdd.getId().getRigoriSbagliati());
-							currentStat.getId().setMediaVoto(currentStat.getId().getMediaVoto().add(currentStatToAdd.getId().getMediaVoto()));
-							currentStat.getId().setMediaVotoFm(currentStat.getId().getMediaVotoFm().add(currentStatToAdd.getId().getMediaVotoFm()));
-						}
-					}
-				}
-				// Faccio la media sulle medie
-				currentStat.getId().setMediaVoto(currentStat.getId().getMediaVoto().divide(new BigDecimal(listStatGiocatore.size()), 2, RoundingMode.CEILING));
-				currentStat.getId().setMediaVotoFm(currentStat.getId().getMediaVotoFm().divide(new BigDecimal(listStatGiocatore.size()), 2, RoundingMode.CEILING));
-				currentStat.getId().setPartiteGiocate(listStatGiocatore.size());
-
-				toReturn.add(currentStat);
-				idToRemove.add(currentGiocatoreId);
-			}
-			Collections.sort(toReturn, new Comparator<Statistiche>() {
-
-				public int compare(Statistiche o1, Statistiche o2) {
-					ComparatorChain comparatorChain = new ComparatorChain();
-					comparatorChain.addComparator(new Comparator<Statistiche>() {
-
-						public int compare(Statistiche o1, Statistiche o2) {
-							int i = ((Integer) o1.getId().getPartiteGiocate()).compareTo((Integer) o2.getId().getPartiteGiocate());
-							return i;
-						}
-					}, true);
-					comparatorChain.addComparator(new Comparator<Statistiche>() {
-
-						public int compare(Statistiche o1, Statistiche o2) {
-							int i = o1.getId().getMediaVotoFm().compareTo(o2.getId().getMediaVotoFm());
-							return i;
-						}
-					}, true);
-					return comparatorChain.compare(o1, o2);
-				}
-			});
-		}
-		this.resumeStatistiche = toReturn;
+		List<StatisticheWrap> ejbResp = statisticheEJB.resetResumeStatistiche(resultList, giornate, giocatori, getOrderColumn(), getOrderDirection());
+		this.resumeStatistiche = unwrapEjbResp(ejbResp);
 	}
 
 	public List<Statistiche> getResumeStatistiche() {
@@ -256,20 +114,6 @@ public class StatisticheList extends EntityQuery<Statistiche> {
 		return ejbResponse.unwarp();
 	}
 
-	private List<Statistiche> getStatisticheIdGiocatoreAndStagione(int idGiocatore, String stagione) {
-		List<Statistiche> toReturn = null;
-		String stagioneParse = giornateList.getStagione(stagione);
-		Query query = getEntityManager().createQuery(SELECT_BY_ID_GIOCATORE_STAGIONE);
-		query.setParameter("idGiocatore", idGiocatore);
-		query.setParameter("stagione", stagioneParse);
-		try {
-			toReturn = (List<Statistiche>) query.getResultList();
-		} catch (NoResultException e) {
-			log.error("Nessun risultato tovato con idGiocatore [" + idGiocatore + "] e stagione [" + stagioneParse + "]");
-		}
-		return toReturn;
-	}
-
 	public void setLastStagione() {
 		Giornate lastGiornata = giornateList.getLastGiornata();
 		if (lastGiornata != null) {
@@ -277,5 +121,13 @@ public class StatisticheList extends EntityQuery<Statistiche> {
 				this.giornate.setStagione(lastGiornata.getStagione());
 			}
 		}
+	}
+	
+	private List<Statistiche> unwrapEjbResp(List<StatisticheWrap> ejbResp){
+		List<Statistiche> toReturn = new ArrayList<Statistiche>();
+		for (StatisticheWrap current : ejbResp){
+			toReturn.add(current.unwarp());
+		}
+		return toReturn;
 	}
 }
