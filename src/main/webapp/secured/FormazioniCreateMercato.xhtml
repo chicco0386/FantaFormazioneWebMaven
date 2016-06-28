@@ -75,12 +75,12 @@
 						value="#{utentiFormazioniList.utentiFormazioni.nomeFormazione}" />
 					<a4j:form>
 						<h:outputText style="font-weight: bold;" value="Crediti residui" />
-						<h:inputText value="#{formazioneBean.creditiResidui}">
+						<h:inputText value="#{formazioneBean.common.creditiResidui}">
 							<a4j:support event="onblur"
 								reRender="creditiMercato,creditiDaFiltrare" ajaxSingle="true" />
 						</h:inputText>
 						<a4j:commandLink value="Filtra"
-							action="#{giocatoriList.initCreditiResiduiDaFiltrare(formazioneBean.creditiResidui)}"
+							action="#{giocatoriList.initCreditiResiduiDaFiltrare(formazioneBean.common.creditiResidui)}"
 							reRender="giocatoriList,creditiMercato,creditiDaFiltrare"></a4j:commandLink>
 					</a4j:form>
 				</div>
@@ -146,13 +146,13 @@
 						<rich:column styleClass="action">
 							<f:facet name="header">Compra</f:facet>
 							<a4j:form>
-								<h:inputText size="7" value="#{formazioneBean.prezzoAcquisto}">
+								<h:inputText size="7" value="#{formazioneBean.common.prezzoAcquisto}">
 									<a4j:support event="onkeyup" reRender="buttonAdd"
 										ajaxSingle="true" />
 								</h:inputText>
 								#{' '}
 								<a4j:commandLink id="buttonAdd"
-									action="${formazioneBean.addGiocatoreMercato(_giocatori, formazioneBean.prezzoAcquisto)}"
+									action="${formazioneBean.addGiocatoreMercato(_giocatori, formazioneBean.common.prezzoAcquisto)}"
 									ajaxSingle="true"
 									reRender="creditiMercato,creditiDaFiltrare,giocatoriListFormazione">
 									<h:graphicImage value="/img/add.png" />
@@ -240,10 +240,10 @@
 				</rich:panel>
 				<s:div styleClass="actionButtons">
 					<h:commandButton value="Salva formazione"
-						action="#{formazioniList.insertFormazioneMercato(utentiFormazioniList.utentiFormazioni.nomeFormazione, formazioneBean.listaGiocatoriMercato, sessionInfo.authUser.id, idUtenteFormazione, formazioneBean.creditiResidui)}">
+						action="#{formazioniList.insertFormazioneMercato(utentiFormazioniList.utentiFormazioni.nomeFormazione, formazioneBean.listaGiocatoriMercato, sessionInfo.authUser.id, idUtenteFormazione, formazioneBean.common.creditiResidui)}">
 					</h:commandButton>
 					<h:commandButton value="Salva nuova formazione"
-						action="#{formazioniList.insertFormazioneMercato(utentiFormazioniList.utentiFormazioni.nomeFormazione.concat(' copia'), formazioneBean.listaGiocatoriMercato, sessionInfo.authUser.id, -1, formazioneBean.creditiResidui)}">
+						action="#{formazioniList.insertFormazioneMercato(utentiFormazioniList.utentiFormazioni.nomeFormazione.concat(' copia'), formazioneBean.listaGiocatoriMercato, sessionInfo.authUser.id, -1, formazioneBean.common.creditiResidui)}">
 					</h:commandButton>
 				</s:div>
 			</div>

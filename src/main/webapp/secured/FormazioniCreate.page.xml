@@ -5,7 +5,7 @@
 	<param name="sort" value="#{giocatoriList.orderColumn}" />
 	<param name="dir" value="#{giocatoriList.orderDirection}" />
 
-	<param name="idUtenteFormazione" value="#{formazioneBean.idUtenteFormazioneToInit}" />
+	<param name="idUtenteFormazione" value="#{formazioneBean.common.idUtenteFormazioneToInit}" />
 	<param name="nomeFormazione"
 		value="#{utentiFormazioniList.utentiFormazioni.nomeFormazione}" />
 	<param name="stagioneGiocatore" value="#{giocatoriList.giocatori.stagione}" />
@@ -24,7 +24,7 @@
 		<rule if-outcome="false">
 			<redirect view-id="/secured/FormazioniCreate.xhtml"
 				include-page-params="true">
-				<param name="idUtenteFormazione" value="#{formazioneBean.idUtenteFormazioneToInit}" />
+				<param name="idUtenteFormazione" value="#{formazioneBean.common.idUtenteFormazioneToInit}" />
 				<param name="nomeFormazione"
 					value="#{utentiFormazioniList.utentiFormazioni.nomeFormazione}" />
 				<param name="nomeGiocatore" value="#{giocatoriList.giocatori.nome}" />
