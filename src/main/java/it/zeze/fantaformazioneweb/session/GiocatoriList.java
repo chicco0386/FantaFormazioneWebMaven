@@ -13,7 +13,9 @@ import org.jboss.seam.log.Log;
 
 import it.zeze.fanta.ejb.util.JNDIUtils;
 import it.zeze.fanta.service.definition.ejb.proxy.seam.GiocatoriSeamRemote;
+import it.zeze.fanta.service.definition.ejb.proxy.seam.GiornateSeamRemote;
 import it.zeze.fantaformazioneweb.entity.Giocatori;
+import it.zeze.fantaformazioneweb.entity.Giornate;
 import it.zeze.fantaformazioneweb.entity.wrapper.GiocatoriWrap;
 
 @Name("giocatoriList")
@@ -28,10 +30,12 @@ public class GiocatoriList extends EntityQuery<Giocatori> {
 	SessionInfo sessionInfo;
 	
 	private static GiocatoriSeamRemote giocatoriEJB;
+	private static GiornateSeamRemote giornateEJB;
 	
 	static {
 		try {
 			giocatoriEJB = JNDIUtils.getGiocatoriEJB();
+			giornateEJB = JNDIUtils.getGiornateEJB();
 		} catch (NamingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -99,5 +103,14 @@ public class GiocatoriList extends EntityQuery<Giocatori> {
 			return ejbResp.unwrap();
 		}
 		return null;
+	}
+	
+	public void setLastStagione() {
+		Giornate lastGiornata = giornateEJB.getLastGiornata();
+		if (lastGiornata != null) {
+			if (this.giocatori.getStagione() == null || this.giocatori.getStagione().isEmpty()) {
+				this.giocatori.setStagione(lastGiornata.getStagione());
+			}
+		}
 	}
 }

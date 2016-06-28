@@ -13,6 +13,7 @@
 	<param name="nomeSquadra" value="#{giocatoriList.giocatori.squadre.nome}" />
 	<param name="ruoloGiocatore" value="#{giocatoriList.giocatori.ruolo}" />
 
+	<action execute="#{giocatoriList.setLastStagione()}"/>
 	<action execute="#{formazioneBean.initListaGiocatori(sessionInfo.authUser.id)}" />
 
 	<navigation
