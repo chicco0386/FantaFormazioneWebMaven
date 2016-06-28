@@ -37,7 +37,7 @@ public class ComboBoxUtil {
 	GiornateList giornateList;
 
 	private final static String SELECT_GIORNATE_CALCOLO_FORMAZIONI = "select probFormFg.id.idGiornata from ProbabiliFormazioniFg probFormFg group by probFormFg.id.idGiornata";
-	private final static String SELECT_GIORNATE_STAT_CALCOLO_FORMAZIONI = "select stat.id.idGiornata from Statistiche stat group by stat.id.idGiornata";
+	private final static String SELECT_GIORNATE_STAT_CALCOLO_FORMAZIONI = "select stat.id.idGiornata from Statistiche stat group by stat.giornate.numeroGiornata";
 	private final static String SELECT_STAGIONI = "select g.stagione from Giornate g group by g.stagione order by g.stagione desc";
 	private final static String SELECT_GIORNATE_BY_STAGIONE_CALCOLO_FORMAZIONI = "select g.numeroGiornata from Giornate g, ProbabiliFormazioniFg probFormFg where g.stagione = :stagione and g.id = probFormFg.id.idGiornata group by probFormFg.id.idGiornata order by g.numeroGiornata desc";
 	private final static String SELECT_NOME_FORMAZIONI_BY_ID_UTENTE = "select utentiForm from UtentiFormazioni utentiForm where utenti.id=:idUtente";
