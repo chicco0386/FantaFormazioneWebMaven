@@ -46,6 +46,7 @@ public class StatisticheList extends EntityQuery<Statistiche> {
 	static {
 		try {
 			statisticheEJB = JNDIUtils.getStatisticheEJB();
+			giornateEJB = JNDIUtils.getGiornateEJB();
 		} catch (NamingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
