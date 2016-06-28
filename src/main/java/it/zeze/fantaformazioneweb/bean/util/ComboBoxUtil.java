@@ -72,7 +72,7 @@ public class ComboBoxUtil {
 		for (int i = 0; i < resultList.size(); i++) {
 			currentIdGiornata = resultList.get(i);
 			numeroGiornata = giornateList.getGiornataById(currentIdGiornata).getNumeroGiornata();
-			toReturn.add(new SelectItem(resultList.get(i), String.valueOf(numeroGiornata).concat("a giornata")));
+			toReturn.add(new SelectItem(numeroGiornata, String.valueOf(numeroGiornata).concat("a giornata")));
 		}
 		return toReturn;
 	}
