@@ -12,14 +12,16 @@ public class Utility {
 	public static void convertServiceResponseToStatusMessage(StatusMessages messages, ServiceResponse serviceResponse) {
 		if (serviceResponse != null && serviceResponse.getMessageResponse() != null && !serviceResponse.getMessageResponse().isEmpty()) {
 			for (MessageResponse currentMessage : serviceResponse.getMessageResponse()) {
-				if (currentMessage.getSeverity().equals(MessageSeverity.INFO)) {
-					messages.add(Severity.INFO, currentMessage.getMessage());
-				}
-				if (currentMessage.getSeverity().equals(MessageSeverity.ERROR)) {
-					messages.add(Severity.ERROR, currentMessage.getMessage());
-				}
-				if (currentMessage.getSeverity().equals(MessageSeverity.WARN)) {
-					messages.add(Severity.WARN, currentMessage.getMessage());
+				if (currentMessage.getSeverity() != null) {
+					if (currentMessage.getSeverity().equals(MessageSeverity.INFO)) {
+						messages.add(Severity.INFO, currentMessage.getMessage());
+					}
+					if (currentMessage.getSeverity().equals(MessageSeverity.ERROR)) {
+						messages.add(Severity.ERROR, currentMessage.getMessage());
+					}
+					if (currentMessage.getSeverity().equals(MessageSeverity.WARN)) {
+						messages.add(Severity.WARN, currentMessage.getMessage());
+					}
 				}
 			}
 		}
