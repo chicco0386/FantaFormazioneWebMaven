@@ -29,7 +29,7 @@
 				<version>2.6</version>
 				<executions>
 					<execution>
-						<id>copy-resources</id>
+						<id>copy-resources-as</id>
 						<!-- here the phase you need -->
 						<phase>install</phase>
 						<goals>
@@ -37,6 +37,25 @@
 						</goals>
 						<configuration>
 							<outputDirectory>/home/enrico/Scrivania/ZeZe/jboss-as-7.1.1.Final/standalone/deployments</outputDirectory>
+							<resources>
+								<resource>
+									<directory>target</directory>
+									<includes>
+										<include>FantaFormazioneWeb7.war</include>
+									</includes>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+					<execution>
+						<id>copy-resources-eap</id>
+						<!-- here the phase you need -->
+						<phase>install</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>/home/enrico/Scrivania/ZeZe/jboss-eap-6.1/standalone/deployments</outputDirectory>
 							<resources>
 								<resource>
 									<directory>target</directory>
