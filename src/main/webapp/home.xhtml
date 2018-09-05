@@ -1,63 +1,86 @@
 <!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
-	xmlns:s="http://jboss.com/products/seam/taglib"
-	xmlns:ui="http://java.sun.com/jsf/facelets"
-	xmlns:f="http://java.sun.com/jsf/core"
-	xmlns:h="http://java.sun.com/jsf/html"
-	xmlns:rich="http://richfaces.org/rich"
-	xmlns:a4j="http://richfaces.org/a4j" template="layout/template.xhtml">
+                xmlns:s="http://jboss.com/products/seam/taglib"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:rich="http://richfaces.org/rich"
+                xmlns:a4j="http://richfaces.org/a4j" template="layout/template.xhtml">
 
-	<ui:define name="body">
+    <script type="text/javascript">
+        function sayHello() {
 
-		<s:span id="initFormazGazzetta">
-			<h:form>
-				<h:outputText style="font-weight: bold;"
-					value="Sceglia a stagione da gestire" />
-				<h:selectOneMenu value="#{sessionInfo.stagione}">
-					<f:selectItems value="#{comboBoxUtil.stagioniStatistiche()}">
-						<a4j:support event="onchange" reRender="buttons" />
-					</f:selectItems>
-				</h:selectOneMenu>
-				<h:commandButton value="Seleziona" />
-			</h:form>
-		</s:span>
+        var name = prompt("What is your name?");
 
-		<s:span id="buttons" rendered="#{not empty sessionInfo.stagione}">
-			<s:button value="Inizializza calendario"
-				action="#{calendarioList.inizializzaCalendario()}" />
-			<s:button value="Inizializza giocatori"
-				action="#{giocatoriList.unmarshallAndSaveFromHtmlFile(true)}" />
-			<!-- <s:button value="Aggiorna stagione giocatori"
-			action="#{giocatoriList.unmarshallAndSaveFromHtmlFileForUpdateStagione(true)}" /> -->
-			<s:button value="Inizializza prob formazioni FG"
-				action="#{probabiliFormazioniFgList.unmarshallAndSaveFromHtmlFile()}" />
+        Seam.Component.getInstance("helloAction").sayHello(name, sayHelloCallback);
 
-			<s:button value="Inizializza prob formazioni Gazzetta"
-				action="#{probabiliFormazioniGazzettaList.unmarshallAndSaveFromHtmlFile()}" />
-			<s:button value="Inizializza statistiche"
-				action="#{statisticheList.unmarshallAndSaveFromHtmlFile()}" />
-		</s:span>
+        }
 
-		<div>
-			<h1 style="text-align: center;">Benvenuto in FantaFormazione</h1>
-			<p>
-				Cosa ti permette di fare FantaFormazione (FF):
-				<ul>
-					<li>Ti permette di controllare tutte le statistiche dei
-						giocatori del campionato di serie A</li>
-					<li>Ti permette di tenere sotto controllo in un unico posto
-						tutte le tue formazioni fanta calcio</li>
-					<li>Ti permette di tenere d'occhio le statistiche delle tue
-						formazioni di fanta calcio</li>
-					<li>Ti permette di avere con un solo click la TUA migliore
-						formazione da schierare in campo per la prossima giornata di
-						campionato</li>
-				</ul>
-				Cosa aspetti inizia subito a gestire le tue formazioni e chiedere
-				quale potrebbe essere la formazione migliore da schierare in campo.
-			</p>
-		</div>
 
-	</ui:define>
+
+        function sayHelloCallback(result) {
+
+        alert(result);
+
+        }
+    </script>
+
+    <ui:define name="body">
+
+        <s:span id="initFormazGazzetta">
+            <h:form>
+                <h:outputText style="font-weight: bold;"
+                              value="Sceglia a stagione da gestire"/>
+                <h:selectOneMenu value="#{sessionInfo.stagione}">
+                    <f:selectItems value="#{comboBoxUtil.stagioniStatistiche()}">
+                        <a4j:support event="onchange" reRender="buttons"/>
+                    </f:selectItems>
+                </h:selectOneMenu>
+                <h:commandButton value="Seleziona"/>
+            </h:form>
+        </s:span>
+
+        <s:span id="buttons" rendered="#{not empty sessionInfo.stagione}">
+            <s:button value="Inizializza calendario"
+                      action="#{calendarioList.inizializzaCalendario()}"/>
+            <s:button value="Inizializza giocatori"
+                      action="#{giocatoriList.unmarshallAndSaveFromHtmlFile(true)}"/>
+            <!-- <s:button value="Aggiorna stagione giocatori"
+            action="#{giocatoriList.unmarshallAndSaveFromHtmlFileForUpdateStagione(true)}" /> -->
+            <s:button value="Inizializza prob formazioni FG"
+                      action="#{probabiliFormazioniFgList.unmarshallAndSaveFromHtmlFile()}"/>
+
+            <s:button value="Inizializza prob formazioni Gazzetta"
+                      action="#{probabiliFormazioniGazzettaList.unmarshallAndSaveFromHtmlFile()}"/>
+            <s:button value="Inizializza statistiche"
+                      action="#{statisticheList.unmarshallAndSaveFromHtmlFile()}"/>
+        </s:span>
+
+        <div>
+            <h1 style="text-align: center;">Benvenuto in FantaFormazione</h1>
+            <p>
+                Cosa ti permette di fare FantaFormazione (FF):
+                <ul>
+                    <li>Ti permette di controllare tutte le statistiche dei
+                        giocatori del campionato di serie A
+                    </li>
+                    <li>Ti permette di tenere sotto controllo in un unico posto
+                        tutte le tue formazioni fanta calcio
+                    </li>
+                    <li>Ti permette di tenere d'occhio le statistiche delle tue
+                        formazioni di fanta calcio
+                    </li>
+                    <li>Ti permette di avere con un solo click la TUA migliore
+                        formazione da schierare in campo per la prossima giornata di
+                        campionato
+                    </li>
+                </ul>
+                Cosa aspetti inizia subito a gestire le tue formazioni e chiedere
+                quale potrebbe essere la formazione migliore da schierare in campo.
+            </p>
+            <!--<script src="js/scripts.js"></script>-->
+        </div>
+
+    </ui:define>
 </ui:composition>
